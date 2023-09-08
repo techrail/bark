@@ -1,5 +1,5 @@
 # Bark
-Bark is supposed to be a small library and easy-to-use library that uses PostgreSQL for collecting logs from multiple sources. It is also supposed to contain a web server which can accept the logs using REST calls.
+Bark is supposed to be a small and easy-to-use library that uses PostgreSQL for collecting logs from multiple sources. It is also supposed to contain a web server which can accept the logs using REST calls.
 
 ## Introduction to the problem
 When we start off with smaller projects, logging is not an issue. However, as we grow in size and start creating multiple services and start logging more things, logging becomes more and more problematic. Now, there are pretty great projects, both open and properietary out there that make log collection, search and analytics on terabyte scale possible. However, between the basic HTTP server and the enterprise scale, as we grow, we still need to be able to store, process, analyze and search through our logs. While plaintext logs do make sense, they are not great when you are trying to filter out events, especially in a multi-service installation.

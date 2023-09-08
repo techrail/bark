@@ -18,5 +18,5 @@ It has to be written in golang for the sake of being great at handling incoming 
 - It is not trying to replace ELK or NewRelic or Datadog or Fluentd or any log analytics system that is dedicated towards the 100 GB+ scale of logs.
 - It is not a CLI tool or a Web server at this point - we don't want to start off with a CLI tool or a Web Service to view your logs or filter them. You want that, go run a query against PostgreSQL directly using your terminal or GUI tool of your choice!
 
-[Social Media Preview image Photo](https://unsplash.com/@lorannva?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) by Lora Ninova on [Unsplash](https://unsplash.com/photos/U86FnrpRR0k?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
+Social Media Preview image Photo by [Lora Ninova](https://unsplash.com/@lorannva?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/photos/U86FnrpRR0k?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
   

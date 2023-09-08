@@ -1,4 +1,4 @@
-# bark
+# Bark
 Bark is supposed to be a small library and easy-to-use library that uses PostgreSQL for collecting logs from multiple sources. It is also supposed to contain a web server which can accept the logs using REST calls.
 
 ## Introduction to the problem

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 
 	"github.com/fasthttp/router"
 	"github.com/jmoiron/sqlx"
@@ -36,13 +37,6 @@ type Log struct {
 	MoreData map[string]interface{} `json:"more_data"`
 }
 
-type LogD struct {
-	LogLevel int16
-	SVCName  string
-	Code     string
-	Msg      string
-	MoreData map[string]interface{}
-}
 type App struct {
 	DB *sqlx.DB
 }
@@ -67,6 +61,44 @@ func NewApp(opts utils.AppConfig) (*App, error) {
 	}, nil
 }
 
+func buildInserQuery(l Log) (string, []any) {
+	var queryBuilder, valuesBuilder strings.Builder
+	var elems []any
+
+	queryBuilder.WriteString("INSERT INTO app_log (")
+	valuesBuilder.WriteString("VALUES (")
+
+	v := reflect.ValueOf(l)
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		value := v.Field(i).Interface()
+
+		if reflect.ValueOf(value).IsZero() {
+			continue
+		}
+		queryBuilder.WriteString(field.Tag.Get("json") + ",")
+		valuesBuilder.WriteString(fmt.Sprintf("$%d,", len(elems)+1))
+
+		switch val := value.(type) {
+		case LogLevel:
+			elems = append(elems, val.ToInt())
+		case string:
+			elems = append(elems, val)
+		case map[string]interface{}:
+			mD, err := json.Marshal(val)
+			if err != nil {
+				continue
+			}
+
+			elems = append(elems, mD)
+		}
+	}
+	query := queryBuilder.String()[:queryBuilder.Len()-1] + ") " + valuesBuilder.String()[:valuesBuilder.Len()-1] + ")"
+
+	return query, elems
+}
+
 func (a App) Insert(ctx *fasthttp.RequestCtx) {
 	b := ctx.PostBody()
 	var l Log
@@ -77,6 +109,7 @@ func (a App) Insert(ctx *fasthttp.RequestCtx) {
 		ctx.Response.SetBodyString(err.Error())
 		return
 	}
+
 	tx, err := a.DB.Begin()
 	if err != nil {
 		ctx.Response.SetStatusCode(500)
@@ -84,64 +117,17 @@ func (a App) Insert(ctx *fasthttp.RequestCtx) {
 		ctx.Response.SetBodyString("failed to insert")
 		return
 	}
-	query := "INSERT INTO app_log ("
-	values := "VALUES ("
 
-	t := reflect.TypeOf(l)
-	v := reflect.ValueOf(l)
-
-	j := 1
-
-	elems := []any{}
-
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		value := v.Field(i).Interface()
-
-		if reflect.ValueOf(value).IsZero() {
-			continue
-		}
-
-		switch reflect.TypeOf(value).Kind() {
-		case reflect.Map:
-			var mD []byte
-			// marshal moredata if it exists
-			if len(l.MoreData) != 0 {
-				mD, _ = json.Marshal(l.MoreData)
-				elems = append(elems, mD)
-			}
-
-		case reflect.String:
-			keyName := field.Tag.Get("json")
-			if keyName == "log_level" {
-				val := value.(LogLevel)
-				elems = append(elems, val.ToInt())
-			} else {
-				elems = append(elems, value)
-			}
-		}
-
-		// Append the field name to the query
-		query += field.Tag.Get("json")
-
-		// Append the placeholder to the values
-		values += fmt.Sprintf("$%d", j)
-		j++
-
-		// Add commas between fields and placeholders
-		if i < t.NumField()-1 {
-			query += ", "
-			values += ", "
-		}
+	query, elems := buildInserQuery(l)
+	if len(elems) == 0 {
+		ctx.Response.SetStatusCode(400)
+		ctx.Response.SetBodyString("empty request")
+		return
 	}
-
-	query += ") " + values + ")"
-	log.Println(query)
-
 	_, err = tx.Exec(query, elems...)
 
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	err = tx.Commit()
@@ -152,7 +138,6 @@ func (a App) Insert(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ctx.Response.SetBody(b)
 	ctx.Response.SetStatusCode(200)
 }
 

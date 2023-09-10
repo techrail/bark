@@ -1,25 +1,160 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
+	"strings"
 
 	"github.com/fasthttp/router"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+	"github.com/techrail/bark/utils"
 	"github.com/valyala/fasthttp"
 )
 
-func Index(ctx *fasthttp.RequestCtx) {
-	ctx.WriteString("Welcome!")
+type LogLevel string
+
+func (l LogLevel) ToInt() int16 {
+	switch l {
+	case "INFO":
+		return 10
+	case "DEBUG":
+		return 11
+	case "WARNING":
+		return 12
+	default:
+		return 10
+	}
 }
 
-func Hello(ctx *fasthttp.RequestCtx) {
-	fmt.Fprintf(ctx, "Hello, %s!\n", ctx.UserValue("name"))
+type Log struct {
+	LogLevel LogLevel               `json:"log_level"`
+	SVCName  string                 `json:"service_name"`
+	Code     string                 `json:"code"`
+	Msg      string                 `json:"msg"`
+	MoreData map[string]interface{} `json:"more_data"`
+}
+
+type App struct {
+	DB *sqlx.DB
+}
+type AppConfig struct {
+	DBName     string
+	DBUsername string
+	DBPassword string
+	SSLMode    string
+	APPPort    string
+}
+
+func NewApp(opts utils.AppConfig) (*App, error) {
+	dSN := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", opts.DBUsername, opts.DBPassword, opts.DBName, opts.SSLMode)
+	db, err := sqlx.Connect("postgres", dSN)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &App{
+		DB: db,
+	}, nil
+}
+
+func buildInserQuery(l Log) (string, []any) {
+	var queryBuilder, valuesBuilder strings.Builder
+	var elems []any
+
+	queryBuilder.WriteString("INSERT INTO app_log (")
+	valuesBuilder.WriteString("VALUES (")
+
+	v := reflect.ValueOf(l)
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		value := v.Field(i).Interface()
+
+		if reflect.ValueOf(value).IsZero() {
+			continue
+		}
+		queryBuilder.WriteString(field.Tag.Get("json") + ",")
+		valuesBuilder.WriteString(fmt.Sprintf("$%d,", len(elems)+1))
+
+		switch val := value.(type) {
+		case LogLevel:
+			elems = append(elems, val.ToInt())
+		case string:
+			elems = append(elems, val)
+		case map[string]interface{}:
+			mD, err := json.Marshal(val)
+			if err != nil {
+				continue
+			}
+
+			elems = append(elems, mD)
+		}
+	}
+	query := queryBuilder.String()[:queryBuilder.Len()-1] + ") " + valuesBuilder.String()[:valuesBuilder.Len()-1] + ")"
+
+	return query, elems
+}
+
+func (a App) Insert(ctx *fasthttp.RequestCtx) {
+	b := ctx.PostBody()
+	var l Log
+	err := json.Unmarshal(b, &l)
+
+	if err != nil {
+		ctx.Response.SetStatusCode(500)
+		ctx.Response.SetBodyString(err.Error())
+		return
+	}
+
+	tx, err := a.DB.Begin()
+	if err != nil {
+		ctx.Response.SetStatusCode(500)
+		log.Println(err)
+		ctx.Response.SetBodyString("failed to insert")
+		return
+	}
+
+	query, elems := buildInserQuery(l)
+	if len(elems) == 0 {
+		ctx.Response.SetStatusCode(400)
+		ctx.Response.SetBodyString("empty request")
+		return
+	}
+	_, err = tx.Exec(query, elems...)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		ctx.Response.SetStatusCode(500)
+		log.Println(err)
+		ctx.Response.SetBodyString("failed to insert")
+		return
+	}
+
+	ctx.Response.SetStatusCode(200)
 }
 
 func main() {
-	r := router.New()
-	r.GET("/", Index)
-	r.GET("/hello/{name}", Hello)
 
-	log.Fatal(fasthttp.ListenAndServe(":8080", r.Handler))
+	config := utils.LoadConfig()
+
+	app, err := NewApp(config)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Println("connected to database")
+
+	r := router.New()
+	r.POST("/insert", app.Insert)
+
+	log.Fatal(fasthttp.ListenAndServe(config.APPPort, r.Handler))
 }

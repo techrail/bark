@@ -1,19 +1,16 @@
 version: "3.7"
 services:
   postgres:
-    image: postgres:10.5
+    image: postgres:latest
     restart: always
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    logging:
-      options:
-        max-size: 10m
-        max-file: "3"
+      - POSTGRES_PASSWORD=auth_user
+      - POSTGRES_DB=pass
     ports:
       - "5432:5432"
     volumes:
-      # Store data 
+      # Store data
       - ./_nocode/db/postgres-data:/var/lib/postgresql/data
       # Run the sql script to create tables
       - ./_nocode/db/migrations/001_base_schema.up.sql:/docker-entrypoint-initdb.d/create_tables.sql

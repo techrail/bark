@@ -4,9 +4,9 @@ services:
     image: postgres:15.4
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=auth_user
-      - POSTGRES_DB=pass
+      - POSTGRES_USER=auth_user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=bark
     ports:
       - "5432:5432"
     volumes:

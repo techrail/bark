@@ -71,8 +71,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// 2.Fetch all logs
-	logs, err := db.FetchAllLogs()
+	// 2.Fetch n number of logs
+	logs, err := db.FetchLimitedLogs(4)
 	if err != nil {
 		log.Fatal(err)
 	}

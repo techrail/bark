@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq" //needed for postgres driver
-	"github.com/techrail/bark/barklog"
+	"github.com/techrail/bark/models"
 )
 
 // Inserts a Bark log within a transaction
-func (db *Database) InsertLog(l barklog.BarkLog) error {
+func (db *BarkPostgresDb) InsertLog(l models.BarkLog) error {
 
 	// Start a transaction
 	tx, err := db.Client.Beginx()
@@ -45,30 +45,18 @@ func (db *Database) InsertLog(l barklog.BarkLog) error {
 }
 
 // Fetches all logs within a transaction
-func (db *Database) FetchAllLogs() ([]barklog.BarkLog, error) {
-
-	// Start a transaction
-	tx, err := db.Client.Beginx()
-	if err != nil {
-		return nil, fmt.Errorf("error starting a transaction: %w", err)
-	}
-
-	var barkLogs []barklog.BarkLog
+func (db *BarkPostgresDb) FetchAllLogs() ([]models.BarkLog, error) {
+	var barkLogs []models.BarkLog
 
 	query := `
 	SELECT id,log_time,log_level,service_name,code,msg,more_data
 	FROM app_log`
 
-	err = tx.Select(&barkLogs, query)
+	err := db.Client.Select(&barkLogs, query)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching log rows: %w", err)
 	}
 
-	// Commit the transaction
-	err = tx.Commit()
-	if err != nil {
-		return nil, fmt.Errorf("error committing transaction: %w", err)
-	}
 	return barkLogs, nil
 
 }

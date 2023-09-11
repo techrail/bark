@@ -1,4 +1,4 @@
-package barklog
+package models
 
 import (
 	"encoding/json"

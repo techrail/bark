@@ -10,12 +10,12 @@ import (
 )
 
 // Wrapping the sqlx.DB in a custom struct to use it as a receiver for query functions in barkLogQueries.go
-type Database struct {
+type BarkPostgresDb struct {
 	Client *sqlx.DB
 }
 
 // Connects to the Postgres DB
-func ConnectToDatabase() (*Database, error) {
+func ConnectToDatabase() (*BarkPostgresDb, error) {
 	connectionString := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		os.Getenv("DB_HOST"),
@@ -29,11 +29,11 @@ func ConnectToDatabase() (*Database, error) {
 	dbConn, err := sqlx.Connect("postgres", connectionString)
 
 	if err != nil {
-		return &Database{}, fmt.Errorf("error connecting to db: %w", err)
+		return &BarkPostgresDb{}, fmt.Errorf("error connecting to db: %w", err)
 	}
-	return &Database{Client: dbConn}, nil
+	return &BarkPostgresDb{Client: dbConn}, nil
 }
 
-func (d *Database) Ping(ctx context.Context) error {
+func (d *BarkPostgresDb) Ping(ctx context.Context) error {
 	return d.Client.DB.PingContext(ctx)
 }

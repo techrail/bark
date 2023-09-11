@@ -9,8 +9,8 @@ import (
 
 	"github.com/fasthttp/router"
 	"github.com/joho/godotenv"
-	"github.com/techrail/bark/barklog"
 	"github.com/techrail/bark/db"
+	"github.com/techrail/bark/models"
 	"github.com/valyala/fasthttp"
 )
 
@@ -57,7 +57,7 @@ func main() {
 		"b": "banana",
 	},
 	)
-	sampleLog := barklog.BarkLog{
+	sampleLog := models.BarkLog{
 		// Id:          1234,
 		LogTime:     time.Now(),
 		LogLevel:    0,

@@ -2,16 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
-	"github.com/brianvoe/gofakeit/v6"
 	"github.com/fasthttp/router"
 	"github.com/joho/godotenv"
+	"github.com/techrail/bark/barklog"
 	"github.com/techrail/bark/db"
-	"github.com/techrail/bark/logger"
 	"github.com/valyala/fasthttp"
 )
 
@@ -29,8 +28,6 @@ func Init() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	fmt.Println("ABCD" + os.Getenv("DB_PASSWORD"))
-	fmt.Println(gofakeit.UUID())
 }
 
 func main() {
@@ -50,14 +47,19 @@ func main() {
 	fmt.Println("successfully connected to database")
 
 	// Test transactions
-	sampleLog := logger.Log{
+	moreData, _ := json.Marshal(map[string]interface{}{
+		"a": "apple",
+		"b": "banana",
+	},
+	)
+	sampleLog := barklog.BarkLog{
 		// Id:          1234,
 		LogTime:     time.Now(),
 		LogLevel:    0,
 		ServiceName: "test",
 		Code:        "1234",
 		Message:     "Test",
-		MoreData:    "{}",
+		MoreData:    moreData,
 	}
 	err = db.InsertLog(sampleLog)
 	if err != nil {

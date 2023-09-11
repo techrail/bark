@@ -6,7 +6,7 @@ CREATE TABLE app_log
     service_name VARCHAR(64)                 NOT NULL DEFAULT 'def_svc',
     code         VARCHAR(16)                 NOT NULL DEFAULT '000000',
     msg          TEXT                        NOT NULL DEFAULT '_no_msg_supplied_',
-    more_data    jsonb                       NOT NULL DEFAULT '{}'::jsonb
+    more_data    JSONB                       NOT NULL DEFAULT '{}'::jsonb
 );
 
 COMMENT ON TABLE app_log IS 'Table to store application logs';

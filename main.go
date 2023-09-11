@@ -21,10 +21,10 @@ func Index(ctx *fasthttp.RequestCtx) {
 func Hello(ctx *fasthttp.RequestCtx) {
 	fmt.Fprintf(ctx, "Hello, %s!\n", ctx.UserValue("name"))
 }
+
+// Perform prerequisite tasks - like loading env variables
 func Init() {
-
 	err := godotenv.Load(".env")
-
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -36,17 +36,22 @@ func main() {
 	r.GET("/", Index)
 	r.GET("/hello/{name}", Hello)
 
-	// Create DB Connection
-	db, err := db.NewDatabase()
+	// Connect to Postgres DB instance
+	db, err := db.ConnectToDatabase()
 	if err != nil {
 		log.Fatal(err)
 	}
+	// Ping DB
 	if err := db.Ping(context.Background()); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("successfully connected to database")
 
 	// Test transactions
+	// 1. Insert Log
+
+	// more_data is a JSONB field in the db, in the BarkLog struct its stored as a json.RawMessage ([]byte) field.
+	// So we need to Marshal it to json before inserting
 	moreData, _ := json.Marshal(map[string]interface{}{
 		"a": "apple",
 		"b": "banana",
@@ -65,5 +70,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// log.Fatal(fasthttp.ListenAndServe(":8080", r.Handler))
+
+	// 2.Fetch all logs
+	logs, err := db.FetchAllLogs()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, log := range logs {
+		fmt.Printf("%v\n", log)
+	}
+
+	log.Fatal(fasthttp.ListenAndServe(":8080", r.Handler))
 }

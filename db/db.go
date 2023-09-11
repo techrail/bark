@@ -9,11 +9,13 @@ import (
 	_ "github.com/lib/pq" //needed for postgres driver
 )
 
+// Wrapping the sqlx.DB in a custom struct to use it as a receiver for query functions in barkLogQueries.go
 type Database struct {
 	Client *sqlx.DB
 }
 
-func NewDatabase() (*Database, error) {
+// Connects to the Postgres DB
+func ConnectToDatabase() (*Database, error) {
 	connectionString := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		os.Getenv("DB_HOST"),
@@ -27,7 +29,7 @@ func NewDatabase() (*Database, error) {
 	dbConn, err := sqlx.Connect("postgres", connectionString)
 
 	if err != nil {
-		return &Database{}, fmt.Errorf("error connecting to: %w", err)
+		return &Database{}, fmt.Errorf("error connecting to db: %w", err)
 	}
 	return &Database{Client: dbConn}, nil
 }

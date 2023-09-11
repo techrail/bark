@@ -6,6 +6,7 @@ import (
 	"log"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/fasthttp/router"
 	"github.com/jmoiron/sqlx"
@@ -141,6 +142,44 @@ func (a App) Insert(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetStatusCode(200)
 }
 
+func readFromChannel(logChannel <-chan Log) []Log {
+	var logsFromChannel []Log
+	for val := range logChannel {
+		logsFromChannel = append(logsFromChannel, val)
+	}
+
+	return logsFromChannel
+}
+
+func writeToChannel(logChannel chan Log, logRecord Log) {
+	logChannel <- logRecord
+}
+
+// go routine to check channel length and commit to DB
+func batchCommit(logChannel chan Log) string {
+	logChannelLength := 0
+	for {
+		logChannelLength = len(logChannel)
+		if logChannelLength > 100 {
+			//commit in batches of 100
+			logsToCommit := readFromChannel(logChannel)
+			for i := 0; i < len(logsToCommit); i++ {
+				// call bulk insert function
+			}
+
+		} else if logChannelLength > 0 && logChannelLength < 100 {
+			// commit one at a time
+			logsToCommit := readFromChannel(logChannel)
+			for i := 0; i < len(logsToCommit); i++ {
+				// call insert
+			}
+		} else {
+			time.Sleep(1 * time.Second)
+		}
+	}
+
+}
+
 func main() {
 
 	config := utils.LoadConfig()
@@ -157,4 +196,9 @@ func main() {
 	r.POST("/insert", app.Insert)
 
 	log.Fatal(fasthttp.ListenAndServe(config.APPPort, r.Handler))
+
+	logChannel := make(chan Log)
+
+	go batchCommit(logChannel)
+
 }

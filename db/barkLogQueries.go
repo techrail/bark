@@ -64,3 +64,34 @@ func (db *BarkPostgresDb) FetchLimitedLogs(rowLimit int) ([]models.BarkLog, erro
 	return barkLogs, nil
 
 }
+
+// Inserts a Bark log within a transaction
+func (db *BarkPostgresDb) InsertBatch(l []models.BarkLog) error {
+
+	// Start a transaction
+	tx, err := db.Client.Beginx()
+	if err != nil {
+		return fmt.Errorf("error starting a transaction: %w", err)
+	}
+
+	query := `
+	INSERT INTO app_log 
+	(log_time,log_level,service_name,code,msg,more_data) 
+	VALUES (:log_time,:log_level,:service_name,:code,:msg,:more_data) 
+	RETURNING id`
+
+	result, err := tx.NamedExec(query, l)
+	if err != nil {
+		return fmt.Errorf("error while inserting logs: %w", err)
+	}
+
+	// Commit the transaction
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("error committing transaction: %w", err)
+	}
+	numRowsAffected, err := result.RowsAffected()
+	fmt.Println("Rows inserted ", numRowsAffected)
+	return err
+
+}

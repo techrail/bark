@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
-	"strings"
 	"time"
 
 	"github.com/fasthttp/router"
@@ -32,11 +30,14 @@ func Init() {
 	}
 }
 
+var logChannel = make(chan models.BarkLog)
+
 func main() {
 	Init()
 	r := router.New()
 	r.GET("/", Index)
 	r.GET("/hello/{name}", Hello)
+	r.POST("/insert", SendToChannel)
 
 	// Connect to Postgres DB instance
 	db, err := db.ConnectToDatabase()
@@ -59,16 +60,34 @@ func main() {
 		"b": "banana",
 	},
 	)
-	sampleLog := models.BarkLog{
+	sampleLog := []models.BarkLog{
 		// Id:          1234,
-		LogTime:     time.Now(),
-		LogLevel:    0,
-		ServiceName: "test",
-		Code:        "1234",
-		Message:     "Test",
-		MoreData:    moreData,
+		{LogTime: time.Now(),
+			LogLevel:    0,
+			ServiceName: "test",
+			Code:        "1234",
+			Message:     "Test",
+			MoreData:    moreData},
+		{LogTime: time.Now(),
+			LogLevel:    0,
+			ServiceName: "test",
+			Code:        "1234",
+			Message:     "Test",
+			MoreData:    moreData},
+		{LogTime: time.Now(),
+			LogLevel:    0,
+			ServiceName: "test",
+			Code:        "1234",
+			Message:     "Test",
+			MoreData:    moreData},
+		{LogTime: time.Now(),
+			LogLevel:    0,
+			ServiceName: "test",
+			Code:        "1234",
+			Message:     "Test",
+			MoreData:    moreData},
 	}
-	err = db.InsertLog(sampleLog)
+	err = db.InsertBatch(sampleLog)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,72 +97,70 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Print(logs)
 
-	ctx.Response.SetStatusCode(200)
+	//	ctx.Response.SetStatusCode(200)
+
+	go batchCommit(logChannel)
 }
 
-func readFromChannel(logChannel <-chan Log) []Log {
-	var logsFromChannel []Log
-	for val := range logChannel {
-		logsFromChannel = append(logsFromChannel, val)
+func SendToChannel(ctx *fasthttp.RequestCtx) {
+	body := ctx.Request.Body()
+	if len(body) == 0 {
+		ctx.Error("Empty request", fasthttp.StatusBadRequest)
+		return
+	}
+	var requestData models.BarkLog
+	if err := json.Unmarshal(body, &requestData); err != nil {
+		ctx.Error("Invalid request body structure", fasthttp.StatusBadRequest)
+		return
 	}
 
-	return logsFromChannel
-}
+	select {
+	case logChannel <- requestData:
+	default:
+		ctx.Error("Channel is busy", fasthttp.StatusInternalServerError)
+		return
+	}
 
-func writeToChannel(logChannel chan Log, logRecord Log) {
-	logChannel <- logRecord
+	ctx.SetStatusCode(fasthttp.StatusOK)
+
 }
 
 // go routine to check channel length and commit to DB
-func batchCommit(logChannel chan Log) string {
+func batchCommit(logChannel chan models.BarkLog) string {
 	logChannelLength := 0
+	db := new(db.BarkPostgresDb)
 	for {
 		logChannelLength = len(logChannel)
 		if logChannelLength > 100 {
-			//commit in batches of 100
-			logsToCommit := readFromChannel(logChannel)
-			for i := 0; i < len(logsToCommit); i++ {
-				// call bulk insert function
+			var logBatch = []models.BarkLog{}
+			for i := 0; i < 100; i++ {
+				elem, ok := <-logChannel
+				if !ok {
+					fmt.Println("Error occured while getting batch from channel")
+					break // Something went wrong
+				}
+				logBatch = append(logBatch, elem)
 			}
+			err := db.InsertBatch(logBatch)
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println("Batch inserted at ", time.Now().Format("2006-01-02 15:04:05"))
 
 		} else if logChannelLength > 0 && logChannelLength < 100 {
 			// commit one at a time
-			logsToCommit := readFromChannel(logChannel)
-			for i := 0; i < len(logsToCommit); i++ {
-				// call insert
+			singleLog := <-logChannel
+			err := db.InsertLog(singleLog)
+			if err != nil {
+				fmt.Println(err)
 			}
+			fmt.Println("Log inserted at ", time.Now().Format("2006-01-02 15:04:05"))
+
 		} else {
 			time.Sleep(1 * time.Second)
 		}
 	}
 
-}
-
-func main() {
-
-	config := utils.LoadConfig()
-
-	app, err := NewApp(config)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	log.Println("connected to database")
-
-	r := router.New()
-	r.POST("/insert", app.Insert)
-
-	log.Fatal(fasthttp.ListenAndServe(config.APPPort, r.Handler))
-
-	logChannel := make(chan Log)
-
-	go batchCommit(logChannel)
-
-	for _, log := range logs {
-		fmt.Printf("%v\n", log)
-	}
-
-	log.Fatal(fasthttp.ListenAndServe(":8080", r.Handler))
 }

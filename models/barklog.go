@@ -1,17 +1,23 @@
 package models
 
 import (
-	"encoding/json"
+	`encoding/json`
+	`fmt`
 	"time"
 )
 
-// Struct representing a log in Bark
+// BarkLog is a struct representing a log in Bark
 type BarkLog struct {
-	Id          int64           `db:"id"`
-	LogTime     time.Time       `db:"log_time"`
-	LogLevel    int             `db:"log_level"`
-	ServiceName string          `db:"service_name"`
-	Code        string          `db:"code"`
-	Message     string          `db:"msg"`
-	MoreData    json.RawMessage `db:"more_data"`
+	Id          int64           `db:"id" json:"id"`
+	LogTime     time.Time       `db:"log_time" json:"logTime"`
+	LogLevel    int             `db:"log_level" json:"logLevel"`
+	ServiceName string          `db:"service_name" json:"serviceName"`
+	Code        string          `db:"code" json:"code"`
+	Message     string          `db:"msg" json:"msg"`
+	MoreData    json.RawMessage `db:"more_data" json:"moreData"`
+}
+
+func (b BarkLog) String() string {
+	return fmt.Sprintf("Id: %v | LogTime: %v | LogLevel: %v | ServiceName: %v | Code: %v | Message: %v | MoreData: %v \n",
+		b.Id, b.LogTime, b.LogLevel, b.ServiceName, b.Code, b.Message, b.MoreData)
 }

@@ -6,15 +6,15 @@ import (
 	"os"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq" //needed for postgres driver
+	_ "github.com/lib/pq" // needed for postgres driver
 )
 
-// Wrapping the sqlx.DB in a custom struct to use it as a receiver for query functions in barkLogQueries.go
+// BarkPostgresDb wraps the sqlx.DB in a custom struct to use it as a receiver for query functions
 type BarkPostgresDb struct {
 	Client *sqlx.DB
 }
 
-// Connects to the Postgres DB
+// ConnectToDatabase Connects to the Postgres DB
 func ConnectToDatabase() (*BarkPostgresDb, error) {
 	connectionString := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
@@ -31,6 +31,16 @@ func ConnectToDatabase() (*BarkPostgresDb, error) {
 	if err != nil {
 		return &BarkPostgresDb{}, fmt.Errorf("error connecting to db: %w", err)
 	}
+	return &BarkPostgresDb{Client: dbConn}, nil
+}
+
+func OpenDatabase() (*BarkPostgresDb, error) {
+	dbConn, err := sqlx.Open("postgres", "postgres://vaibhavkaushal:vaibhavkaushal@127.0.0.1:5432/bark?sslmode=disable")
+
+	if err != nil {
+		return &BarkPostgresDb{}, fmt.Errorf("E#1KDW57 - error connecting to db: %w", err)
+	}
+
 	return &BarkPostgresDb{Client: dbConn}, nil
 }
 

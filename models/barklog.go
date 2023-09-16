@@ -91,33 +91,14 @@ func (bld *BarkLogDao) Insert(l BarkLog) error {
 }
 
 func (bld *BarkLogDao) InsertBatch(l []BarkLog) error {
-	fmt.Println("E#1KGYSG - NOT YET IMPLEMENTED")
+	panic("E#1KGYSG - NOT YET IMPLEMENTED")
 	return nil
 
-	// // Start a transaction
-	// tx, err := db.Client.Beginx()
-	// if err != nil {
-	// 	return fmt.Errorf("error starting a transaction: %w", err)
-	// }
-	//
 	// query := `
 	// INSERT INTO app_log
-	// (log_time,log_level,service_name,code,msg,more_data)
-	// VALUES (:log_time,:log_level,:service_name,:code,:msg,:more_data)
-	// RETURNING id`
-	//
-	// result, err := tx.NamedExec(query, l)
-	// if err != nil {
-	// 	return fmt.Errorf("error while inserting logs: %w", err)
-	// }
-	//
-	// // Commit the transaction
-	// err = tx.Commit()
-	// if err != nil {
-	// 	return fmt.Errorf("error committing transaction: %w", err)
-	// }
-	// numRowsAffected, err := result.RowsAffected()
-	// fmt.Println("Rows inserted ", numRowsAffected)
-	// return err
+	//     (log_time, log_level, service_name,session_name, code, msg, more_data)
+	// VALUES
+	//     ($1, $2, $3, $4, $5, $6, $7)`
+	//     ($8, $9, $10, $11, $12, $13, $14)`
 
 }

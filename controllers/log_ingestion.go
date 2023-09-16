@@ -5,11 +5,17 @@ import (
 
 	`github.com/valyala/fasthttp`
 
+	`github.com/techrail/bark/appRuntime`
 	`github.com/techrail/bark/models`
 	`github.com/techrail/bark/services/ingestion`
 )
 
 func SendSingleToChannel(ctx *fasthttp.RequestCtx) {
+	if appRuntime.ShutdownRequested.Load() == true {
+		ctx.SetStatusCode(fasthttp.StatusServiceUnavailable)
+		return
+	}
+
 	body := ctx.Request.Body()
 	if len(body) == 0 {
 		ctx.Error("E#1KDWEO - Empty request", fasthttp.StatusBadRequest)
@@ -24,10 +30,14 @@ func SendSingleToChannel(ctx *fasthttp.RequestCtx) {
 
 	go ingestion.InsertSingle(singleLogEntry)
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	// ctx.Response.SetBodyString("Sent for insertion")
 }
 
 func SendMultipleToChannel(ctx *fasthttp.RequestCtx) {
+	if appRuntime.ShutdownRequested.Load() == true {
+		ctx.SetStatusCode(fasthttp.StatusServiceUnavailable)
+		return
+	}
+
 	body := ctx.Request.Body()
 	if len(body) == 0 {
 		ctx.Error("E#1KDWRA - Empty request", fasthttp.StatusBadRequest)
@@ -42,5 +52,8 @@ func SendMultipleToChannel(ctx *fasthttp.RequestCtx) {
 
 	go ingestion.InsertMultiple(multipleLogEntries)
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	// ctx.Response.SetBodyString("Sent for insertion")
+}
+
+func ShutdownService(ctx *fasthttp.RequestCtx) {
+	appRuntime.ShutdownRequested.Store(true)
 }

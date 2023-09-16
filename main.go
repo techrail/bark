@@ -36,6 +36,7 @@ func main() {
 	r.GET("/hello/{name}", Hello)
 	r.POST("/insertSingle", controllers.SendSingleToChannel)
 	r.POST("/insertMultiple", controllers.SendMultipleToChannel)
+	r.POST("/shutdownServiceAsap", controllers.ShutdownService)
 
 	err := resources.InitDatabase()
 	if err != nil {
@@ -43,59 +44,4 @@ func main() {
 	}
 	go dbLogWriter.StartWritingLogs()
 	log.Fatal(fasthttp.ListenAndServe(":8080", r.Handler))
-
-	// =========== TEST CASE (To be refactored) ===========
-	// NOTE: We will write the tests later, separately
-
-	// more_data is a JSONB field in the db, in the BarkLog struct its stored as a json.RawMessage ([]byte) field.
-	// So we need to Marshal it to json before inserting
-	// moreData, _ := json.Marshal(map[string]interface{}{
-	// 	"a": "apple",
-	// 	"b": "banana",
-	// },
-	// )
-	// sampleLog := []models.BarkLog{
-	// 	// Id:          1234,
-	// 	{LogTime: time.Now(),
-	// 		LogLevel:    0,
-	// 		ServiceName: "test",
-	// 		Code:        "1234",
-	// 		Message:     "Test",
-	// 		MoreData:    moreData},
-	// 	{LogTime: time.Now(),
-	// 		LogLevel:    0,
-	// 		ServiceName: "test",
-	// 		Code:        "1234",
-	// 		Message:     "Test",
-	// 		MoreData:    moreData},
-	// 	{LogTime: time.Now(),
-	// 		LogLevel:    0,
-	// 		ServiceName: "test",
-	// 		Code:        "1234",
-	// 		Message:     "Test",
-	// 		MoreData:    moreData},
-	// 	{LogTime: time.Now(),
-	// 		LogLevel:    0,
-	// 		ServiceName: "test",
-	// 		Code:        "1234",
-	// 		Message:     "Test",
-	// 		MoreData:    moreData},
-	// }
-	// err = barkDb.InsertBatch(sampleLog)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	//
-	// // 2.Fetch n number of logs
-	// logs, err := barkDb.FetchLimitedLogs(4)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Print(logs)
-
-	// =============================================================
-
-	//	ctx.Response.SetStatusCode(200)
-
-	// go batchCommit(logChannel)
 }

@@ -12,7 +12,7 @@ func InsertSingle(logEntry models.BarkLog) {
 		fmt.Printf("E#1KDY0O - Channel is full. Cannot push. Log received: | %v\n", logEntry)
 		return
 	}
-	_, err := logEntry.ValidateForInsert()
+	logEntry, err := logEntry.ValidateForInsert()
 
 	if err == nil {
 		channels.LogChannel <- logEntry
@@ -20,13 +20,14 @@ func InsertSingle(logEntry models.BarkLog) {
 }
 
 func InsertMultiple(logEntries []models.BarkLog) {
+	var err error
 	for _, logEntry := range logEntries {
 		if len(channels.LogChannel) > channels.LogChannelCapacity-1 {
 			fmt.Printf("E#1KDZD2 - Channel is full. Cannot push. Log received: | %v\n", logEntry)
 			return
 		}
 
-		_, err := logEntry.ValidateForInsert()
+		logEntry, err = logEntry.ValidateForInsert()
 
 		if err == nil {
 			channels.LogChannel <- logEntry

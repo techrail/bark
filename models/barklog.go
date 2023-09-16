@@ -22,22 +22,19 @@ type BarkLog struct {
 }
 
 func (b BarkLog) ValidateForInsert() (BarkLog, error) {
-
 	if b.LogTime.IsZero() {
 		b.LogTime = time.Now().UTC()
 	}
-	fmt.Printf("%v", b)
-
 	if strings.TrimSpace(b.LogLevel) == "" {
 		b.LogLevel = "info"
 	}
-
 	if strings.TrimSpace(b.ServiceName) == "" {
 		b.ServiceName = "def_svc"
 	}
 	if strings.TrimSpace(b.SessionName) == "" {
 		b.SessionName = "def_sess"
 	}
+
 	if strings.TrimSpace(b.Code) == "" && strings.TrimSpace(b.Message) == "" {
 		b.Code = "000000"
 		b.Message = "_no_msg_supplied_"
@@ -47,9 +44,12 @@ func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 	if strings.TrimSpace(b.Code) == "" {
 		b.Code = "000000"
 	}
-
 	if strings.TrimSpace(b.Message) == "" {
 		b.Message = "_no_msg_supplied_"
+	}
+
+	if len(b.MoreData) == 0 {
+		b.MoreData = json.RawMessage("{\"test\":\"value\"}")
 	}
 
 	return b, nil
@@ -70,16 +70,19 @@ func NewBarkLogDao() *BarkLogDao {
 func (bld *BarkLogDao) Insert(l BarkLog) error {
 	query := `
 	INSERT INTO app_log (
-		log_time,log_level,service_name,
-		code,msg,more_data
+		log_time, log_level, service_name,
+		session_name, code, msg, 
+        more_data
 	) 
 	VALUES (
 	    $1, $2, $3,
-	    $4, $5, $6
+	    $4, $5, $6,
+	    $7
 	)`
 
 	_, err := resources.BarkDb.Client.Queryx(query, l.LogTime, l.LogLevel, l.ServiceName,
-		l.Code, l.Message, l.MoreData)
+		l.SessionName, l.Code, l.Message,
+		l.MoreData)
 
 	if err != nil {
 		return fmt.Errorf("E#1KGY97 - error while inserting log: %w", err)

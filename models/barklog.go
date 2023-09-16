@@ -1,18 +1,19 @@
 package models
 
 import (
-	`encoding/json`
-	`fmt`
+	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 
-	`github.com/techrail/bark/resources`
+	"github.com/techrail/bark/resources"
 )
 
 // BarkLog is a struct representing a log in Bark
 type BarkLog struct {
-	Id          int64           `db:"id" json:"id,omitempty"`
-	LogTime     time.Time       `db:"log_time" json:"logTime,omitempty"`
-	LogLevel    string          `db:"log_level" json:"logLevel,omitempty"`
+	Id          int64           `db:"id" json:"id"`
+	LogTime     time.Time       `db:"log_time" json:"logTime"`
+	LogLevel    string          `db:"log_level" json:"logLevel"`
 	ServiceName string          `db:"service_name" json:"serviceName"`
 	SessionName string          `db:"session_name" json:"sessionName"`
 	Code        string          `db:"code" json:"code"`
@@ -20,8 +21,38 @@ type BarkLog struct {
 	MoreData    json.RawMessage `db:"more_data" json:"moreData"`
 }
 
-func (b BarkLog) Validate() error {
-	return nil
+func (b BarkLog) ValidateForInsert() (BarkLog, error) {
+
+	if b.LogTime.IsZero() {
+		b.LogTime = time.Now().UTC()
+	}
+	fmt.Printf("%v", b)
+
+	if strings.TrimSpace(b.LogLevel) == "" {
+		b.LogLevel = "info"
+	}
+
+	if strings.TrimSpace(b.ServiceName) == "" {
+		b.ServiceName = "def_svc"
+	}
+	if strings.TrimSpace(b.SessionName) == "" {
+		b.SessionName = "def_sess"
+	}
+	if strings.TrimSpace(b.Code) == "" && strings.TrimSpace(b.Message) == "" {
+		b.Code = "000000"
+		b.Message = "_no_msg_supplied_"
+		return b, fmt.Errorf("message and Code empty in Log")
+	}
+
+	if strings.TrimSpace(b.Code) == "" {
+		b.Code = "000000"
+	}
+
+	if strings.TrimSpace(b.Message) == "" {
+		b.Message = "_no_msg_supplied_"
+	}
+
+	return b, nil
 }
 
 func (b BarkLog) String() string {

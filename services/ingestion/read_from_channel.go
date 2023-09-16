@@ -1,10 +1,10 @@
 package ingestion
 
 import (
-	`fmt`
+	"fmt"
 
-	`github.com/techrail/bark/channels`
-	`github.com/techrail/bark/models`
+	"github.com/techrail/bark/channels"
+	"github.com/techrail/bark/models"
 )
 
 func InsertSingle(logEntry models.BarkLog) {
@@ -12,8 +12,11 @@ func InsertSingle(logEntry models.BarkLog) {
 		fmt.Printf("E#1KDY0O - Channel is full. Cannot push. Log received: | %v\n", logEntry)
 		return
 	}
+	_, err := logEntry.ValidateForInsert()
 
-	channels.LogChannel <- logEntry
+	if err == nil {
+		channels.LogChannel <- logEntry
+	}
 }
 
 func InsertMultiple(logEntries []models.BarkLog) {
@@ -23,6 +26,10 @@ func InsertMultiple(logEntries []models.BarkLog) {
 			return
 		}
 
-		channels.LogChannel <- logEntry
+		_, err := logEntry.ValidateForInsert()
+
+		if err == nil {
+			channels.LogChannel <- logEntry
+		}
 	}
 }

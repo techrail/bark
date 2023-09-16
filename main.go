@@ -10,6 +10,7 @@ import (
 
 	`github.com/techrail/bark/controllers`
 	`github.com/techrail/bark/resources`
+	`github.com/techrail/bark/services/dbLogWriter`
 )
 
 func Index(ctx *fasthttp.RequestCtx) {
@@ -40,6 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatal("E#1KDZRP - " + err.Error())
 	}
+	go dbLogWriter.StartWritingLogs()
 	log.Fatal(fasthttp.ListenAndServe(":8080", r.Handler))
 
 	// =========== TEST CASE (To be refactored) ===========

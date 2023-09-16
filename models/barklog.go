@@ -10,14 +10,18 @@ import (
 
 // BarkLog is a struct representing a log in Bark
 type BarkLog struct {
-	Id          int64           `db:"id" json:"id"`
-	LogTime     time.Time       `db:"log_time" json:"logTime"`
-	LogLevel    string          `db:"log_level" json:"logLevel"`
+	Id          int64           `db:"id" json:"id,omitempty"`
+	LogTime     time.Time       `db:"log_time" json:"logTime,omitempty"`
+	LogLevel    string          `db:"log_level" json:"logLevel,omitempty"`
 	ServiceName string          `db:"service_name" json:"serviceName"`
 	SessionName string          `db:"session_name" json:"sessionName"`
 	Code        string          `db:"code" json:"code"`
 	Message     string          `db:"msg" json:"msg"`
 	MoreData    json.RawMessage `db:"more_data" json:"moreData"`
+}
+
+func (b BarkLog) Validate() error {
+	return nil
 }
 
 func (b BarkLog) String() string {

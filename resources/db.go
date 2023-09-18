@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -36,7 +37,7 @@ func InitDatabase() error {
 func OpenDatabase() (*BarkPostgresDb, error) {
 
 	databaseURL := os.Getenv("DATABASE_URL")
-	if databaseURL == "" {
+	if strings.TrimSpace(os.Getenv("DATABASE_URL")) == "" {
 		return &BarkPostgresDb{}, fmt.Errorf("No env found or empty")
 	}
 

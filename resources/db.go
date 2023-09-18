@@ -34,13 +34,13 @@ func InitDatabase() error {
 }
 
 func OpenDatabase() (*BarkPostgresDb, error) {
-	databaseConnectionString := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"), os.Getenv("DB_SSL_MODE"),
-	)
 
-	dbConn, err := sqlx.Open("postgres", databaseConnectionString)
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		return &BarkPostgresDb{}, fmt.Errorf("No env found or empty")
+	}
 
+	dbConn, err := sqlx.Open("postgres", databaseURL)
 	if err != nil {
 		return &BarkPostgresDb{}, fmt.Errorf("E#1KDW57 - error connecting to db: %w", err)
 	}

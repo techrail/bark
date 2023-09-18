@@ -14,7 +14,7 @@ func Config() (*pgxpool.Config) {
 	const defaultMaxConnLifetime = time.Hour
 	const defaultMaxConnIdleTime = time.Minute * 30
 	const defaultHealthCheckPeriod = time.Minute
-	const DATABASE_URL string = "postgres://postgres:12345678@database-1.cxg60mgcjuns.ap-south-1.rds.amazonaws.com:5432/auth?"
+	const DATABASE_URL string = ""
 
 	dbConfig, err := pgxpool.ParseConfig(DATABASE_URL)
 	if err!=nil {

@@ -12,6 +12,7 @@ import (
 )
 
 func h(connPool *pgxpool.Pool, batch *pgx.Batch) {
+// func h(connPool *pgxpool.Pool) {
 	// db.InsertQuery(connPool)	
 	connPool.SendBatch(context.Background(), batch)
 }
@@ -24,7 +25,7 @@ func main() {
     })
 
 	//Create database connection
-	connPool,err := pgxpool.NewWithConfig(context.Background(), db.Config())
+	connPool,err := pgxpool.NewWithConfig(context.Background(), Config())
 	if err!=nil {
 		log.Fatal("Error creating connection to the database!!")
 	} 
@@ -45,6 +46,8 @@ func main() {
 
 	x:= time.Now()
     for _, batch := range batches {
+		// go h (connPool)
+
 		// h(connPool, batch)
 		go h(connPool, batch)
 	}
@@ -53,9 +56,9 @@ func main() {
 
 	fmt.Println("Connected to the database!!")
 	
-	CreateTableQuery(connPool)
+	// CreateTableQuery(connPool)
 	
-	InsertQuery(connPool)
+	// InsertQuery(connPool)
 
 	defer connPool.Close()
 

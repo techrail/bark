@@ -7,10 +7,10 @@ import (
 )
 
 type PGX_S struct {
- 	Con 	   *pgx.Conn
+ 	Con 	   *pgx.Conn	
 }
 
-func(p PGX_S) PGX_Connect(cs string) error {
+func(p *PGX_S) PGX_Connect(cs string) error {
 	var err error 
 	p.Con, err = pgx.Connect(context.Background(), cs)
 	if err != nil {
@@ -19,7 +19,7 @@ func(p PGX_S) PGX_Connect(cs string) error {
 	return nil 
 }
 
-func(p PGX_S) PGX_Query(q string)(pgx.Rows , error ){
+func(p *PGX_S) PGX_Query(q string)(pgx.Rows , error ){
 	res, err := p.Con.Query(context.Background(),q)
 	if err != nil {
 	 	return res , err 

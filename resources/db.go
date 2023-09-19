@@ -1,11 +1,13 @@
 package resources
 
 import (
-	`context`
-	`fmt`
+	"context"
+	"fmt"
+	"os"
+	"strings"
 
-	`github.com/jmoiron/sqlx`
-	_ `github.com/lib/pq`
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 // BarkPostgresDb wraps the sqlx.DB in a custom struct to use it as a receiver for query functions
@@ -33,8 +35,13 @@ func InitDatabase() error {
 }
 
 func OpenDatabase() (*BarkPostgresDb, error) {
-	dbConn, err := sqlx.Open("postgres", "postgres://vaibhavkaushal:vaibhavkaushal@127.0.0.1:5432/bark?sslmode=disable")
 
+	databaseURL := os.Getenv("DATABASE_URL")
+	if strings.TrimSpace(os.Getenv("DATABASE_URL")) == "" {
+		return &BarkPostgresDb{}, fmt.Errorf("No env found or empty")
+	}
+
+	dbConn, err := sqlx.Open("postgres", databaseURL)
 	if err != nil {
 		return &BarkPostgresDb{}, fmt.Errorf("E#1KDW57 - error connecting to db: %w", err)
 	}

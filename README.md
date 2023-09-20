@@ -23,7 +23,7 @@ It has to be written in golang for the sake of being great at handling incoming 
 
 Following are the steps to set up the library on a machine after cloning the repository:
 - Update the `.env` file with appropriate value for `DATABASE_URL` environment variable. 
-The `DATABASE_URL` should be of the format `postgres://scott:password@host:port/db?sslmode=disable`. 
+The `DATABASE_URL` should be of the format `postgres://scott:tiger@host:port/db?sslmode=disable`. 
 - Navigate to the directory containing the `go.mod` file.
 - Install the dependencies using the command `go get .`
 - Run the library using the command `go run main.go`

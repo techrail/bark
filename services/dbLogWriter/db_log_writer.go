@@ -22,7 +22,6 @@ func StartWritingLogs() {
 		logChannelLength = len(channels.LogChannel)
 		if logChannelLength > 100 {
 			// Bulk insert
-			// fmt.Println("In bulk")
 			var logBatch = []models.BarkLog{}
 			for i := 0; i < 100; i++ {
 				elem, ok := <-channels.LogChannel
@@ -38,7 +37,6 @@ func StartWritingLogs() {
 			}
 			fmt.Println("Batch inserted at ", time.Now().Format("2006-01-02 15:04:05"))
 		} else if logChannelLength > 0 && logChannelLength < 100 {
-			// fmt.Println("In single")
 			// Commit one at a time
 			singleLog := <-channels.LogChannel
 			err := BarkLogDao.Insert(singleLog)

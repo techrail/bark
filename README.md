@@ -32,6 +32,8 @@ To test if the library is up and running as expected, open a browser and navigat
 
 [localhost:8080/hello/JohnDoe](http://localhost:8080/hello/JohnDoe)
 
+You should see a text rendered on your browser saying `Hello, JohnDoe!` 
+
 # What is it NOT?
 - It is not a replacement for Plaintext logs - Bark should be able to write to a plaintext log file in parallel to throwing items into Postgres.
 - It is not a replacement for an APM - We don't want to throw in Application uptime or Performance Monitoring. Bark is not supposed to a monitoring solution at all.

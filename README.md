@@ -16,7 +16,7 @@ It has to be written in golang for the sake of being great at handling incoming 
 
 # Prerequisite
 
-- Go (Golang) version 1.20
+- Go (Golang) version 1.20+
 - PostgreSQL database
 
 # Setup

@@ -113,14 +113,14 @@ func (bld *BarkLogDao) InsertBatch(logs []BarkLog) error {
 		logsToInsert[pos+5] = log.Message
 		logsToInsert[pos+6] = log.MoreData
 
-		query += "(?, ?, ?, ?, ?, ?, ?)"
+		query += fmt.Sprintf("($%v, $%v, $%v, $%v, $%v, $%v, $%v)", pos+1, pos+2, pos+3, pos+4, pos+5, pos+6, pos+7)
 
 		if i < numOfLogs-1 {
 			query += ","
 		}
 	}
 
-	_, err := resources.BarkDb.Client.Queryx(query, logsToInsert)
+	_, err := resources.BarkDb.Client.Queryx(query, logsToInsert...)
 
 	if err != nil {
 		return fmt.Errorf("Error while inserting multiple logs: %w", err)

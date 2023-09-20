@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -34,12 +35,11 @@ func InitDatabase() error {
 }
 
 func OpenDatabase() (*BarkPostgresDb, error) {
-	databaseURL := fmt.Sprintf(
-		"user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
-		os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"),
-		os.Getenv("DB_SSL_MODE"),
-	)
+
+	databaseURL := os.Getenv("DATABASE_URL")
+	if strings.TrimSpace(os.Getenv("DATABASE_URL")) == "" {
+		return &BarkPostgresDb{}, fmt.Errorf("No env found or empty")
+	}
 
 	dbConn, err := sqlx.Open("postgres", databaseURL)
 	if err != nil {

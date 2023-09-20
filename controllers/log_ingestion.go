@@ -1,13 +1,13 @@
 package controllers
 
 import (
-	`encoding/json`
+	"encoding/json"
 
-	`github.com/valyala/fasthttp`
+	"github.com/valyala/fasthttp"
 
-	`github.com/techrail/bark/appRuntime`
-	`github.com/techrail/bark/models`
-	`github.com/techrail/bark/services/ingestion`
+	"github.com/techrail/bark/appRuntime"
+	"github.com/techrail/bark/models"
+	"github.com/techrail/bark/services/ingestion"
 )
 
 func SendSingleToChannel(ctx *fasthttp.RequestCtx) {
@@ -46,7 +46,7 @@ func SendMultipleToChannel(ctx *fasthttp.RequestCtx) {
 
 	var multipleLogEntries []models.BarkLog
 	if err := json.Unmarshal(body, &multipleLogEntries); err != nil {
-		ctx.Error("E#1KDWRF - Invalid request body structure", fasthttp.StatusBadRequest)
+		ctx.Error("E#1KDWRF - Invalid request body structure: "+err.Error(), fasthttp.StatusBadRequest)
 		return
 	}
 

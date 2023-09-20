@@ -1,12 +1,12 @@
 package dbLogWriter
 
 import (
-	`fmt`
-	`time`
+	"fmt"
+	"time"
 
-	`github.com/techrail/bark/appRuntime`
-	`github.com/techrail/bark/channels`
-	`github.com/techrail/bark/models`
+	"github.com/techrail/bark/appRuntime"
+	"github.com/techrail/bark/channels"
+	"github.com/techrail/bark/models"
 )
 
 var BarkLogDao *models.BarkLogDao
@@ -31,9 +31,6 @@ func StartWritingLogs() {
 				}
 				logBatch = append(logBatch, elem)
 			}
-			// =====================================================
-			// IMPORTANT: Finish InsertBatch function implementation
-			// =====================================================
 			err := BarkLogDao.InsertBatch(logBatch)
 			if err != nil {
 				fmt.Println(err)
@@ -53,6 +50,7 @@ func StartWritingLogs() {
 					return
 				}
 			} else {
+				// fmt.Println("in sleep")
 				time.Sleep(1 * time.Second)
 			}
 		}

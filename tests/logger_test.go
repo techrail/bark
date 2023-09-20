@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/techrail/bark/db"
-	"github.com/techrail/bark/logger"
 )
 
 func TestGetLogger(t *testing.T) {

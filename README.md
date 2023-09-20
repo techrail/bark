@@ -26,6 +26,7 @@ Following are the steps to set up the library on a machine after cloning the rep
 The `DATABASE_URL` should be of the format `postgres://scott:tiger@host:port/db?sslmode=disable`. 
 - Navigate to the directory containing the `go.mod` file.
 - Install the dependencies using the command `go get .`
+- To create the required tables navigate to the `_nocode/db/migrations` folder. Copy SQL commands from all the `.up.sql`, and run them in the `psql` terminal.
 - Run the library using the command `go run main.go`
 
 To test if the library is up and running as expected, open a browser and navigate to the following URL

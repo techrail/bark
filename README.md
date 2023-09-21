@@ -12,6 +12,29 @@ We want this service to be available as a web service which can be called by oth
 # Language of Choice
 It has to be written in golang for the sake of being great at handling incoming traffic bursts, lining up the logs and sending them in a load-controlled manner to PostgreSQL (because PostgreSQL is not optimized for that kinda stuff).
 
+ 
+
+# Prerequisite
+
+- Go (Golang) version 1.20+
+- PostgreSQL database
+
+# Setup
+
+Following are the steps to set up the library on a machine after cloning the repository:
+- Update the `.env` file with appropriate value for `DATABASE_URL` environment variable. 
+The `DATABASE_URL` should be of the format `postgres://scott:tiger@host:port/db?sslmode=disable`. 
+- Navigate to the directory containing the `go.mod` file.
+- Install the dependencies using the command `go get .`
+- To create the required tables navigate to the `_nocode/db/migrations` folder. Copy SQL commands from all the `.up.sql`, and run them in the `psql` terminal.
+- Run the library using the command `go run main.go`
+
+To test if the library is up and running as expected, open a browser and navigate to the following URL
+
+[localhost:8080/hello/JohnDoe](http://localhost:8080/hello/JohnDoe)
+
+You should see a text rendered on your browser saying `Hello, JohnDoe!` 
+
 # What is it NOT?
 - It is not a replacement for Plaintext logs - Bark should be able to write to a plaintext log file in parallel to throwing items into Postgres.
 - It is not a replacement for an APM - We don't want to throw in Application uptime or Performance Monitoring. Bark is not supposed to a monitoring solution at all.
@@ -19,4 +42,3 @@ It has to be written in golang for the sake of being great at handling incoming 
 - It is not a CLI tool or a Web server at this point - we don't want to start off with a CLI tool or a Web Service to view your logs or filter them. You want that, go run a query against PostgreSQL directly using your terminal or GUI tool of your choice!
 
 Social Media Preview image Photo by [Lora Ninova](https://unsplash.com/@lorannva?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/photos/U86FnrpRR0k?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
-  

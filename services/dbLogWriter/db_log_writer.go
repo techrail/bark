@@ -20,10 +20,14 @@ func StartWritingLogs() {
 	logChannelLength := 0
 	for {
 		logChannelLength = len(channels.LogChannel)
+		var logBatch = []models.BarkLog{}
+		logBatchSize := 100
 		if logChannelLength > 100 {
+			if appRuntime.ShutdownRequested.Load() {
+				logBatchSize = len(channels.LogChannel)
+			}
 			// Bulk insert
-			var logBatch = []models.BarkLog{}
-			for i := 0; i < 100; i++ {
+			for i := 0; i < logBatchSize; i++ {
 				elem, ok := <-channels.LogChannel
 				if !ok {
 					fmt.Println("Error occured while getting batch from channel")
@@ -45,14 +49,8 @@ func StartWritingLogs() {
 				fmt.Println(err)
 			}
 		} else {
-			if appRuntime.ShutdownRequested.Load() == true {
-				if len(channels.LogChannel) == 0 {
-					return
-				}
-			} else {
-				// fmt.Println("in sleep")
-				time.Sleep(1 * time.Second)
-			}
+			// fmt.Println("in sleep")
+			time.Sleep(1 * time.Second)
 		}
 	}
 }

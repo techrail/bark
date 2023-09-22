@@ -1,10 +1,13 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/techrail/bark/resources"
 )
@@ -80,7 +83,7 @@ func (bld *BarkLogDao) Insert(l BarkLog) error {
 	    $7
 	)`
 
-	_, err := resources.BarkDb.Client.Queryx(query, l.LogTime, l.LogLevel, l.ServiceName,
+	_, err := resources.BarkDb.Client.Exec(context.Background(), query, l.LogTime, l.LogLevel, l.ServiceName,
 		l.SessionName, l.Code, l.Message,
 		l.MoreData)
 
@@ -91,14 +94,19 @@ func (bld *BarkLogDao) Insert(l BarkLog) error {
 }
 
 func (bld *BarkLogDao) InsertBatch(l []BarkLog) error {
-	panic("E#1KGYSG - NOT YET IMPLEMENTED")
+	batchOfBarkLog := [][]any{}
+	for i := 0; i < len(l); i++ {
+		batchElement := []any{l[i].LogTime, l[i].LogLevel, l[i].ServiceName, l[i].SessionName,
+			l[i].Code, l[i].Message, l[i].MoreData}
+		batchOfBarkLog = append(batchOfBarkLog, batchElement)
+	}
+
+	_, err := resources.BarkDb.Client.CopyFrom(context.Background(), pgx.Identifier{"app_log"},
+		[]string{"log_time", "log_level", "service_name", "session_name", "code", "msg", "more_data"}, pgx.CopyFromRows(batchOfBarkLog))
+
+	if err != nil {
+		return fmt.Errorf("E#1KSPLS - error while inserting batch: %w", err)
+	}
+
 	return nil
-
-	// query := `
-	// INSERT INTO app_log
-	//     (log_time, log_level, service_name,session_name, code, msg, more_data)
-	// VALUES
-	//     ($1, $2, $3, $4, $5, $6, $7)`
-	//     ($8, $9, $10, $11, $12, $13, $14)`
-
 }

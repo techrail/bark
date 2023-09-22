@@ -1,7 +1,7 @@
 package appRuntime
 
 import (
-	`sync/atomic`
+	"sync/atomic"
 )
 
 var ShutdownRequested atomic.Bool

@@ -8,9 +8,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/valyala/fasthttp"
 
-	`github.com/techrail/bark/controllers`
-	`github.com/techrail/bark/resources`
-	`github.com/techrail/bark/services/dbLogWriter`
+	"github.com/techrail/bark/controllers"
+	"github.com/techrail/bark/resources"
+	"github.com/techrail/bark/services/dbLogWriter"
 )
 
 func Index(ctx *fasthttp.RequestCtx) {

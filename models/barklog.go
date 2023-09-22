@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+
 	"github.com/techrail/bark/resources"
 )
 
@@ -82,10 +83,6 @@ func (bld *BarkLogDao) Insert(l BarkLog) error {
 	    $7
 	)`
 
-	// _, err := resources.BarkDb.Client.Queryx(query, l.LogTime, l.LogLevel, l.ServiceName,
-	// 	l.SessionName, l.Code, l.Message,
-	// 	l.MoreData)
-
 	_, err := resources.BarkDb.Client.Exec(context.Background(), query, l.LogTime, l.LogLevel, l.ServiceName,
 		l.SessionName, l.Code, l.Message,
 		l.MoreData)
@@ -97,60 +94,19 @@ func (bld *BarkLogDao) Insert(l BarkLog) error {
 }
 
 func (bld *BarkLogDao) InsertBatch(l []BarkLog) error {
-	//panic("E#1KGYSG - NOT YET IMPLEMENTED")
-	batchOfBarkLog := [][]interface{}{}
+	batchOfBarkLog := [][]any{}
 	for i := 0; i < len(l); i++ {
-		batchElement := []interface{}{l[i].LogTime, l[i].LogLevel, l[i].ServiceName, l[i].SessionName,
+		batchElement := []any{l[i].LogTime, l[i].LogLevel, l[i].ServiceName, l[i].SessionName,
 			l[i].Code, l[i].Message, l[i].MoreData}
 		batchOfBarkLog = append(batchOfBarkLog, batchElement)
-
 	}
 
 	_, err := resources.BarkDb.Client.CopyFrom(context.Background(), pgx.Identifier{"app_log"},
 		[]string{"log_time", "log_level", "service_name", "session_name", "code", "msg", "more_data"}, pgx.CopyFromRows(batchOfBarkLog))
 
 	if err != nil {
-		return fmt.Errorf("E# - error while inserting batch: %w", err)
+		return fmt.Errorf("E#1KSPLS - error while inserting batch: %w", err)
 	}
 
 	return nil
 }
-
-// func (bld *BarkLogDao) InsertBatch(logs []BarkLog) error {
-
-// 	query := `
-// 	INSERT INTO app_log (
-// 		log_time, log_level, service_name,
-// 		session_name, code, msg,
-//         more_data
-// 	)
-// 	VALUES `
-
-// 	numOfLogs := len(logs)
-// 	logsToInsert := make([]interface{}, numOfLogs*7)
-
-// 	for i, log := range logs {
-// 		pos := i * 7
-// 		logsToInsert[pos+0] = log.LogTime
-// 		logsToInsert[pos+1] = log.LogLevel
-// 		logsToInsert[pos+2] = log.ServiceName
-// 		logsToInsert[pos+3] = log.SessionName
-// 		logsToInsert[pos+4] = log.Code
-// 		logsToInsert[pos+5] = log.Message
-// 		logsToInsert[pos+6] = log.MoreData
-
-// 		query += fmt.Sprintf("($%v, $%v, $%v, $%v, $%v, $%v, $%v)", pos+1, pos+2, pos+3, pos+4, pos+5, pos+6, pos+7)
-
-// 		if i < numOfLogs-1 {
-// 			query += ","
-// 		}
-// 	}
-
-// 	_, err := resources.BarkDb.Client.Queryx(query, logsToInsert...)
-
-// 	if err != nil {
-// 		return fmt.Errorf("Error while inserting multiple logs: %w", err)
-// 	}
-
-// 	return nil
-// }

@@ -1,0 +1,139 @@
+{
+	"info": {
+		"_postman_id": "3b3783a2-8ed6-42ab-957b-036180cfc433",
+		"name": "Bark",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "369275"
+	},
+	"item": [
+		{
+			"name": "Index Request",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "[S] Index Request",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8080/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								""
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "plain",
+					"header": [
+						{
+							"key": "Server",
+							"value": "fasthttp"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 14 Sep 2023 17:22:01 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "text/plain; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "16"
+						}
+					],
+					"cookie": [],
+					"body": "Welcome to Bark!"
+				}
+			]
+		},
+		{
+			"name": "Insert Single Log",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": -100,\n    \"logLevel\": \"info\",\n    \"serviceName\": \"TestPostman\",\n    \"sessionName\": \"testSession\",\n    \"code\": \"1KE0H8\",\n    \"msg\": \"Shows up in DB or not?\",\n    \"moreData\": {\n        \"name\":\"vaibhav\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8080/insertSingle",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"insertSingle"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Insert Multiple Logs",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"code\": \"1KE0H8\"\n    },\n    {\n        \"msg\": \"Shows up in DB or not?\"\n    },\n    {\n        \"serviceName\": \"TestPostman\",\n        \"sessionName\": \"testSession\",\n        \"code\": \"1KE0H9\",\n        \"msg\": \"Shows up in DB or not?\",\n        \"moreData\": {\n            \"name\": \"vaibhav\"\n        }\n    },\n    {\n        \"logLevel\": \"error\",\n        \"sessionName\": \"testSession\",\n        \"code\": \"1KE0I1\",\n        \"msg\": \"Shows up in DB or not?\",\n        \"moreData\": {\n            \"name\": \"vaibhav\"\n        }\n    },\n    {\n        \"logLevel\": \"info\",\n        \"serviceName\": \"TestPostman\",\n        \"sessionName\": \"testSession\",\n        \"code\": \"1KE0I2\",\n        \"msg\": \"Shows up in DB or not?\",\n        \"moreData\": {\n            \"name\": \"vaibhav\"\n        }\n    },\n    {\n        \"logLevel\": \"info\",\n        \"serviceName\": \"TestPostman\",\n        \"sessionName\": \"testSession\",\n        \"code\": \"1KE0I3\",\n        \"msg\": \"Shows up in DB or not?\"\n    },\n    {\n        \"logLevel\": \"info\",\n        \"serviceName\": \"TestPostman\",\n        \"sessionName\": \"testSession\"\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8080/insertMultiple",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"insertMultiple"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

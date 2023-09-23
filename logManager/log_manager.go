@@ -2,75 +2,106 @@
 package logManager
 
 import (
-	. "encoding/json"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	. "github.com/techrail/bark/models"
-	"github.com/techrail/bark/services/ingestion"
+	"net/http"
 	"time"
 )
 
-// LoggerSession represents a session for logging messages.
+// LoggerSession represents logging object.
 type LoggerSession struct {
-	dbConnectionStr string // Database connection string
-	serviceName     string // Name of the service
-	sessionID       string // Unique session identifier
+	serverUrl   string
+	serviceName string
+	sessionID   string
 }
 
-func GetLogger(dbConnectionStr, serviceName string) *LoggerSession {
-	return &LoggerSession{dbConnectionStr: dbConnectionStr, serviceName: serviceName, sessionID: uuid.NewString()}
+type JsonLogBody struct {
+	log_time     string
+	log_level    string
+	service_name string
+	session_name string
+	code         string
+	msg          string
+	more_data    string
 }
 
-func (logger *LoggerSession) log(level, message, code string, customFields ...map[string]string) {
-	var moreData = RawMessage{}
+func GetLogger(serverUrl, serviceName string) *LoggerSession {
+	return &LoggerSession{serverUrl: serverUrl, serviceName: serviceName, sessionID: uuid.NewString()}
+}
 
-	if len(customFields) > 0 {
-		moreData = getJSONData(customFields[0])
+func (logger *LoggerSession) log(level string, message *string, fields ...any) {
+
+	log := JsonLogBody{
+		log_time:     time.Now().String(),
+		log_level:    level,
+		msg:          *message,
+		service_name: logger.serviceName,
+		session_name: logger.sessionID,
 	}
 
-	log := BarkLog{
-		LogTime:     time.Now(),
-		LogLevel:    level,
-		ServiceName: logger.serviceName,
-		SessionName: logger.sessionID,
-		Code:        code,
-		Message:     message,
-		MoreData:    moreData,
+	switch len(fields) {
+	case 1:
+		if code, ok := fields[0].(string); ok {
+			log.code = code
+		} else {
+			fmt.Println("E#4Z4PWS unable to read code")
+			return
+		}
+	case 2:
+		if code, ok := fields[0].(string); ok {
+			log.code = code
+		} else {
+			fmt.Println("E#TCCT6G unable to read code")
+			return
+		}
+		if more, ok := fields[1].(json.RawMessage); ok {
+			log.more_data = string(more)
+		} else {
+			fmt.Println("E#D8KY3C unable to read json data")
+			return
+		}
 	}
 
-	//go ingestion.InsertSingle(log)
-	NewBarkLogDao().Insert(log)
-}
+	payload, err := json.Marshal(log)
 
-func (logger *LoggerSession) Info(message, code string, customFields ...map[string]string) {
-	logger.log("INFO", message, code, customFields...)
-}
-
-func (logger *LoggerSession) Warn(message, code string, customFields ...map[string]string) {
-	logger.log("WARN", message, code, customFields...)
-}
-
-func (logger *LoggerSession) Debug(message, code string, customFields ...map[string]string) {
-	logger.log("DEBUG", message, code, customFields...)
-}
-
-func (logger *LoggerSession) Error(message, code string, customFields ...map[string]string) {
-	logger.log("ERROR", message, code, customFields...)
-}
-
-func (logger *LoggerSession) Fatal(message, code string, customFields ...map[string]string) {
-	logger.log("FATAL", message, code, customFields...)
-}
-
-func (logger *LoggerSession) Custom(barkLog BarkLog) {
-	go ingestion.InsertSingle(barkLog)
-}
-
-func getJSONData(data map[string]string) RawMessage {
-	jsonData, err := Marshal(data)
 	if err != nil {
-		_ = fmt.Errorf("Error while parsing custom data: %v\n", err)
-		return RawMessage("{}")
+		fmt.Printf("E#4Z4PWS %v\n", err)
 	}
-	return jsonData
+
+	fmt.Println(string(payload))
+
+	post, err := http.Post(logger.serverUrl+"/insertSingle", "application/json", bytes.NewBuffer(payload))
+	if err != nil {
+		fmt.Printf("%v", err)
+		return
+	}
+
+	fmt.Println(post)
+}
+
+func (logger *LoggerSession) Info(message string, fields ...any) {
+	logger.log("INFO", &message, fields...)
+}
+
+func (logger *LoggerSession) Warn(message string, fields ...any) {
+	logger.log("WARN", &message, fields...)
+}
+
+func (logger *LoggerSession) Debug(message string, fields ...any) {
+	logger.log("DEBUG", &message, fields...)
+}
+
+func (logger *LoggerSession) Error(message string, fields ...any) {
+	logger.log("ERROR", &message, fields...)
+}
+
+func (logger *LoggerSession) Fatal(message string, fields ...any) {
+	logger.log("FATAL", &message, fields...)
+}
+
+func (logger *LoggerSession) Custom(barkLog *BarkLog) {
+	NewBarkLogDao().Insert(*barkLog)
 }

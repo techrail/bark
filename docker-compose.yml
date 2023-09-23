@@ -3,7 +3,7 @@ services:
   bark:
     build:
       dockerfile: Dockerfile
-    image: 'bark'
+    image: 'techrail/bark:0.1'
     ports:
       - "8080:8080"
     depends_on:

@@ -1,7 +1,7 @@
 # Bark
 Bark is supposed to be a small and easy-to-use library that uses PostgreSQL for collecting logs from multiple sources. It has a web server which can accept the logs using REST calls and for that reason we can run the server separately and can use client library (in progress) to send the logs to the server. But why are we writing yet another logger, aren't there many more already?
 
-![Image](https://github.com/techrail/bark/blob/main/_nocode/images/BARK.png)
+![Image](https://raw.githubusercontent.com/techrail/bark/main/_nocode/images/BARK.png)
 
 ## Introduction to the problem
 When we start off with smaller projects, logging is not an issue. You either do a `fmt.Println` or a `log.Print` and view and search for text in text files. However, as the app or the organisation grows in size and start creating multiple services and start logging more things, logging becomes more and more problematic. Filtering inside a log file becomes more difficult. Co-relating logs to form a single, isolated flow of events becomes a problem too. Sorting and searching that information across multiple large log files and keeping track of line numbers becomes confusing and debugging with the help of logs becomes a nightmare.
@@ -70,9 +70,9 @@ To test if the library is up and running as expected, open a browser and navigat
 You should see a text rendered on your browser saying `Hello, vaibhav!` 
 
 # What is it NOT?
-- It is not a replacement for Plaintext logs - Bark should be able to write to a plaintext log file in parallel to throwing items into Postgres.
-- It is not an APM - We don't want to throw in Application uptime or Performance Monitoring. Bark is not supposed to be a monitoring solution at all.
-- It is not trying to replace any Terabyte-scale log analytics system (e.g. ELK Stack, NewRelic, DataDog etc.) that is dedicated more towards enterprise requirements.
-- It is not a CLI tool or a Web server at this point - we don't want to start off with a CLI tool or a Web Service to view your logs or filter them. You want that, go run a query against PostgreSQL directly using your terminal or GUI tool of your choice!
+- **It is not a replacement for Plaintext logs** - Bark should be able to write to a plaintext log file in parallel to throwing items into Postgres. In case Bark server cannot write to the database, it will emit your log messages on the server's STDOUT.
+- **It is not an APM** - We don't want to throw in Application uptime or Performance Monitoring. Bark is not supposed to be a monitoring solution at all.
+- **It is not trying to replace any Terabyte-scale log aggregation service** - e.g. ELK Stack, NewRelic, DataDog etc. are dedicated more towards enterprise requirements and have capability to handle terabytes of logs. Bark does not aim to act as a replacement of such services. It aims to be the stepping stone between plaintext and terabyte-scale, enterprise-ready solutions.
+- **It is not a CLI tool or a Web server at this point** - Bark, at this time does not offer a Web Service or a CLI tool to view, filter or tail your logs. For that you would have to run a query against PostgreSQL directly using your terminal or GUI tool of your choice (tailing on logs might not be possible though).
 
-Social Media Preview image Photo by [Lora Ninova](https://unsplash.com/@lorannva?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/photos/U86FnrpRR0k?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
+Social Media Preview and header image Photo by [Lora Ninova](https://unsplash.com/@lorannva?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/photos/U86FnrpRR0k?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)

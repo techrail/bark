@@ -22,3 +22,5 @@ go.work
 
 # IDE configuration
 .idea
+
+postgres-data

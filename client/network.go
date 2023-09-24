@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/techrail/bark/models"
 	"github.com/techrail/bark/typs/appError"
 	"github.com/valyala/fasthttp"
@@ -12,7 +11,7 @@ import (
 
 // Todo: Write Issue: Bark to send proper JSON response after insertion.
 
-func Post(url, payload string) (string, appError.AppErr) {
+func post(url, payload string) (string, appError.AppErr) {
 	var err appError.AppErr
 	req := fasthttp.AcquireRequest()
 	req.SetRequestURI(url)
@@ -25,8 +24,6 @@ func Post(url, payload string) (string, appError.AppErr) {
 
 	bodyBytes := resp.Body()
 
-	fmt.Println(resp.Header.StatusCode())
-
 	if resp.Header.StatusCode() != fasthttp.StatusOK {
 		err.Msg = "POST request failed"
 		err.Code = "E#3HMV3G"
@@ -37,10 +34,13 @@ func Post(url, payload string) (string, appError.AppErr) {
 }
 
 func PostLog(url string, log models.BarkLog) (string, appError.AppErr) {
-	var err appError.AppErr
 	logRawJson, _ := json.Marshal(log)
-	response, err := Post(url, string(logRawJson))
-	return response, err
+	return post(url, string(logRawJson))
+}
+
+func PostLogs(url string, log []models.BarkLog) (string, appError.AppErr) {
+	logRawJson, _ := json.Marshal(log)
+	return post(url, string(logRawJson))
 }
 
 func Get(url string) (string, appError.AppErr) {

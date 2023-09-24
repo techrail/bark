@@ -7,11 +7,25 @@ import (
 )
 
 func Test_requester(t *testing.T) {
-	var log models.BarkLog
-	log.Message = "Some random message"
-	response, err := client.PostLog("http://localhost:8080/insertSingle", log)
-	if err.Severity == 1 {
-		t.Error("Error: " + err.Error())
-	}
-	t.Log(response + " response of inserting a log")
+	logClient := client.NewClient("http://localhost:8080/", "INFO", "ServicName", "localRun")
+
+	// Print with formatter
+	logClient.Error("Anime: Naruto")
+	logClient.Info("Anime: One Piece")
+	logClient.Debug("Anime: Bleach")
+	logClient.Warn("Anime: AOT")
+
+	// Print without formatter
+	logClient.Errorf("Anime: %s", "Full Metal Alchemist")
+	logClient.Infof("Anime: %s", "Tokyo Ghoul")
+	logClient.Warnf("Anime: %s", "")
+	logClient.Debugf("I want to print something! %s", "weirdString")
+
+	// Multiple Logs
+	var logs []models.BarkLog
+	logs = make([]models.BarkLog, 3)
+	logs[0] = models.BarkLog{Message: "someMessage"}
+	logs[1] = models.BarkLog{Message: "someMessage"}
+	logs[2] = models.BarkLog{Message: "someMessage"}
+	client.PostLogs("http://localhost:8080/insertMultiple", logs)
 }

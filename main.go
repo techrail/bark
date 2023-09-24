@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"flag"
+	"strconv"
 
 	"github.com/fasthttp/router"
 	"github.com/joho/godotenv"
@@ -13,6 +15,7 @@ import (
 	"github.com/techrail/bark/services/dbLogWriter"
 )
 
+var port = flag.Uint("p",8080,"Enter the port number")
 func Index(ctx *fasthttp.RequestCtx) {
 	_, _ = ctx.WriteString("Welcome to Bark!")
 }
@@ -30,7 +33,8 @@ func Init() {
 }
 
 func main() {
-	Init()
+	flag.Parse()
+	p := ":"+strconv.FormatUint(uint64(*port),10)
 	r := router.New()
 	r.GET("/", Index)
 	r.GET("/hello/{name}", Hello)
@@ -38,10 +42,10 @@ func main() {
 	r.POST("/insertMultiple", controllers.SendMultipleToChannel)
 	r.POST("/shutdownServiceAsap", controllers.ShutdownService)
 
-	err := resources.InitDatabase()
+	err := resources.InitDB()
 	if err != nil {
 		log.Fatal("E#1KDZRP - " + err.Error())
 	}
 	go dbLogWriter.StartWritingLogs()
-	log.Fatal(fasthttp.ListenAndServe(":8080", r.Handler))
+	log.Fatal(fasthttp.ListenAndServe(p, r.Handler))
 }

@@ -17,6 +17,9 @@ So it takes time to install, configure and learn such solutions.
 However, between the basic HTTP server and the enterprise scale, as we grow, we still need to be able to store, process, analyze and search through our logs.
 
 # Aim of this project
+
+![Image](https://raw.githubusercontent.com/techrail/bark/main/_nocode/images/where-bark-fits.png)
+
 Bark aims to fill the gap that exists between simple file-based logging and a large log aggregation solution. Bark is: 
 
 - **Easy to setup**: We use PostgreSQL for storing logs. It is cross-platform and installing it is easy. You probably already have it installed for your regular services anyway!

@@ -10,7 +10,6 @@ import (
 
 // BarkPostgresDb wraps the *pgxpool.Pool in a custom struct to use it as a receiver for query functions
 type BarkPostgresDb struct {
-	//Client *sqlx.DB
 	Client *pgxpool.Pool
 }
 
@@ -36,10 +35,8 @@ func OpenDB() (*BarkPostgresDb, error) {
 	return &BarkPostgresDb{Client: connPool}, nil
 }
 
-//func OpenDatabase()
-
+// func to ping the database
 func (d *BarkPostgresDb) PingDB(ctx context.Context) error {
-	//return d.Client.DB.PingContext(ctx)
 	return d.Client.Ping(ctx)
 }
 

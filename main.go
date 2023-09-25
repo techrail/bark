@@ -43,5 +43,10 @@ func main() {
 		log.Fatal("E#1KDZRP - " + err.Error())
 	}
 	go dbLogWriter.StartWritingLogs()
-	log.Fatal(fasthttp.ListenAndServe(os.Getenv("APP_PORT"), r.Handler))
+	port := os.Getenv("APP_PORT")
+	if len(port) == 0 {
+		port = ":8080"
+	}
+	log.Fatal(fasthttp.ListenAndServe(port, r.Handler))
+	
 }

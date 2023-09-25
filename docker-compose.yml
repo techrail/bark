@@ -1,5 +1,17 @@
 version: "3.7"
 services:
+  bark:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # image: 'techrail/bark:0.1'
+    ports:
+      - "18080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgres://auth_user:pass@postgres:5432/bark?sslmode=disable
   postgres:
     image: postgres:15.4
     restart: always
@@ -8,9 +20,14 @@ services:
       - POSTGRES_PASSWORD=pass
       - POSTGRES_DB=bark
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
       # Store data
       - ./_nocode/db/postgres-data:/var/lib/postgresql/data
       # Run the sql script to create tables
       - ./_nocode/db/migrations/001_base_schema.up.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d bark -U auth_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

@@ -59,7 +59,7 @@ func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 }
 
 func (b BarkLog) String() string {
-	return fmt.Sprintf("Id: %v | LogTime: %v | LogLevel: %v | ServiceName: %v | SessionName: %v | Code: %v | Message: %v | MoreData: %v \n",
+	return fmt.Sprintf("Id: %v | LogTime: %v | LogLevel: %v | AppName: %v | SessionName: %v | Code: %v | Message: %v | MoreData: %v \n",
 		b.Id, b.LogTime, b.LogLevel, b.ServiceName, b.SessionName, b.Code, b.Message, b.MoreData)
 }
 

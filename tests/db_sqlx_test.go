@@ -1,7 +1,7 @@
 package tests
 
 //
-//import (
+// import (
 //	"encoding/json"
 //	"log"
 //	"testing"
@@ -10,23 +10,23 @@ package tests
 //	"github.com/joho/godotenv"
 //	"github.com/techrail/bark/db"
 //	"github.com/techrail/bark/models"
-//)
+// )
 //
-//func Init() {
+// func Init() {
 //	err := godotenv.Load("../.env")
 //	if err != nil {
 //		log.Fatal("Error loading .env file")
 //	}
-//}
-//func TestDBConnection(t *testing.T) {
+// }
+// func TestDBConnection(t *testing.T) {
 //	Init()
 //	_, err := db.ConnectToDatabase()
 //	if err != nil {
 //		log.Fatalf("Failed to connect to the database: %v", err)
 //	}
-//}
+// }
 //
-//func TestInsertLog(t *testing.T) {
+// func TestInsertLog(t *testing.T) {
 //	Init()
 //
 //	db, err := db.ConnectToDatabase()
@@ -39,7 +39,7 @@ package tests
 //	sampleLog := models.BarkLog{
 //		LogTime:     time.Now(),
 //		LogLevel:    0,
-//		ServiceName: "test",
+//		AppName: "test",
 //		Code:        "1234",
 //		Message:     "Test",
 //		MoreData:    moreData}
@@ -51,9 +51,9 @@ package tests
 //	if err != nil {
 //		log.Fatal(err)
 //	}
-//}
+// }
 //
-//func TestInsertBatch(t *testing.T) {
+// func TestInsertBatch(t *testing.T) {
 //	Init()
 //
 //	db, err := db.ConnectToDatabase()
@@ -66,25 +66,25 @@ package tests
 //		// Id:          1234,
 //		{LogTime: time.Now(),
 //			LogLevel:    0,
-//			ServiceName: "test",
+//			AppName: "test",
 //			Code:        "1234",
 //			Message:     "Test",
 //			MoreData:    moreData},
 //		{LogTime: time.Now(),
 //			LogLevel:    0,
-//			ServiceName: "test",
+//			AppName: "test",
 //			Code:        "1234",
 //			Message:     "Test",
 //			MoreData:    moreData},
 //		{LogTime: time.Now(),
 //			LogLevel:    0,
-//			ServiceName: "test",
+//			AppName: "test",
 //			Code:        "1234",
 //			Message:     "Test",
 //			MoreData:    moreData},
 //		{LogTime: time.Now(),
 //			LogLevel:    0,
-//			ServiceName: "test",
+//			AppName: "test",
 //			Code:        "1234",
 //			Message:     "Test",
 //			MoreData:    moreData},
@@ -96,9 +96,9 @@ package tests
 //	if err != nil {
 //		log.Fatal(err)
 //	}
-//}
+// }
 //
-//func TestFetchLogs(t *testing.T) {
+// func TestFetchLogs(t *testing.T) {
 //	Init()
 //
 //	db, err := db.ConnectToDatabase()
@@ -109,4 +109,4 @@ package tests
 //	if err != nil {
 //		log.Fatal(err)
 //	}
-//}
+// }

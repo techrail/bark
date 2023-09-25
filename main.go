@@ -13,10 +13,6 @@ import (
 	"github.com/techrail/bark/services/dbLogWriter"
 )
 
-func Index(ctx *fasthttp.RequestCtx) {
-	_, _ = ctx.WriteString("Welcome to Bark!")
-}
-
 func Hello(ctx *fasthttp.RequestCtx) {
 	_, _ = fmt.Fprintf(ctx, "Hello, %s!\n", ctx.UserValue("name"))
 }
@@ -34,7 +30,7 @@ func Init() string {
 func main() {
 	address := Init()
 	r := router.New()
-	r.GET("/", Index)
+	r.GET("/", controllers.IndexController)
 	r.GET("/hello/{name}", Hello)
 	r.POST("/insertSingle", controllers.SendSingleToChannel)
 	r.POST("/insertMultiple", controllers.SendMultipleToChannel)

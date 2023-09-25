@@ -27,5 +27,6 @@ func IndexController(ctx *fasthttp.RequestCtx) {
 		_, _ = ctx.WriteString("Welcome to Bark! If you are seeing this message, please contact the site admin.")
 		return
 	}
-	_, _ = ctx.WriteString(string(iJson))
+	ctx.Response.Header.Add(fasthttp.HeaderContentType, "application/json; charset=utf-8")
+	ctx.Response.SetBodyString(string(iJson))
 }

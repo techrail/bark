@@ -20,11 +20,13 @@ However, between the basic HTTP server and the enterprise scale, as we grow, we 
 
 ![Image](https://raw.githubusercontent.com/techrail/bark/main/_nocode/images/where-bark-fits.png)
 
-Bark aims to fill the gap that exists between simple file-based logging and a large log aggregation solution. Bark is: 
+Bark aims to fill the gap that exists between simple file-based logging and a large log aggregation solution. Without Bark, a single developer or a small team working on a project would have to go through all the complex setup of an enterprise-level logging solution which they probably don't need or want at the outset. 
 
-- **Easy to setup**: We use PostgreSQL for storing logs. It is cross-platform and installing it is easy. You probably already have it installed for your regular services anyway!
+Bark is: 
+
+- **Easy to setup**: We use PostgreSQL for storing logs. It is cross-platform and installing it is easy. You probably already have it installed for your other services anyway!
 - **Easy to configure**: You just need to create a new database (or use an existing one), create a new table and start a server. That's it.
-- **Easy (or nothing) to learn**: You probably already know SQL. You can use that knowledge to filter and analyse all your logs! There is nothing new to learn.
+- **Easy (or nothing) to learn**: You probably already know SQL. You can use that knowledge to filter and analyze all your logs! There is nothing new to learn.
 
 ## Ease of purging irrelevant logs
 When the time comes, you can search through your logs as needed. You can dispose off anything that's unnecessary in one way or the other. For example, with Bark, you can _easily_ do something like this : 
@@ -54,17 +56,13 @@ It has to be written in golang for the sake of being great at handling incoming 
 
 ## Installation
 
-Bark uses go modules. You can install bark using docker as well.
+### Install it yourself
+If you have go version 1.20 or above installed, following are the steps to set up Bark on a machine after cloning the repository:
 
-(To be expanded after some more work is done and we have released version 1.0)
-
-# Setup
-
-Following are the steps to set up the library on a machine after cloning the repository:
 - Set the appropriate value for `DATABASE_URL` environment variable. 
 The `DATABASE_URL` should be of the format `postgres://username:password@host:port/db?sslmode=disable`. For example: `export DATABASE_URL="postgres://vaibhav:mypassword@127.0.0.1:5432/log_db?sslmode=disable"`
 - Navigate to the directory containing the `go.mod` file.
-- Install the dependencies using the command `go get .`
+- ~~Install the dependencies using the command `go get .`~~ The dependencies are included in the `vendor` directory in the codebase, so you don't need to install them separately.
 - To create the required tables navigate to the `_nocode/db/migrations` folder. Copy SQL commands from all the `.up.sql`, and run them in the `psql` terminal. Or you can use a migration tool like [golang-migrate](https://github.com/golang-migrate/migrate)
 - Run the bark server using the command `go run main.go`
 
@@ -72,10 +70,33 @@ To test if the library is up and running as expected, open a browser and navigat
 
 You should see a text rendered on your browser saying `Hello, vaibhav!` 
 
+### Get it from Docker
+You can pull bark using docker as well: 
+```
+docker pull techrail/bark:0.1
+```
+
+Or you can directly run it using: 
+```
+docker run techrail/bark:0.1
+```
+
+### Run using Docker Compose
+Or you can use Docker Compose to run it. Once you have cloned the repository, you can run:
+
+```
+docker-compose up
+```
+
+And it should start running. You can then visit [http://localhost:18080/hello/vaibhav](http://localhost:18080/hello/vaibhav) and you should be greeted with the `Hello, vaibhav!` message!
+
+**NOTE**: Please bear with us as we work fixing the docker versions.
+
 # What is it NOT?
 - **It is not a replacement for Plaintext logs** - Bark should be able to write to a plaintext log file in parallel to throwing items into Postgres. In case Bark server cannot write to the database, it will emit your log messages on the server's STDOUT.
 - **It is not an APM** - We don't want to throw in Application uptime or Performance Monitoring. Bark is not supposed to be a monitoring solution at all.
 - **It is not trying to replace any Terabyte-scale log aggregation service** - e.g. ELK Stack, NewRelic, DataDog etc. are dedicated more towards enterprise requirements and have capability to handle terabytes of logs. Bark does not aim to act as a replacement of such services. It aims to be the stepping stone between plaintext and terabyte-scale, enterprise-ready solutions.
 - **It is not a CLI tool or a Web server at this point** - Bark, at this time does not offer a Web Service or a CLI tool to view, filter or tail your logs. For that you would have to run a query against PostgreSQL directly using your terminal or GUI tool of your choice (tailing on logs might not be possible though).
 
-Social Media Preview and header image Photo by [Lora Ninova](https://unsplash.com/@lorannva?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/photos/U86FnrpRR0k?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
+### A note of thanks
+Bark won't be here without the contributions we have gotten so far. Not would it be able to say _beautifully_ that _Logs are beautiful_ without the Social Media Preview and cover image Photo by [Lora Ninova](https://unsplash.com/@lorannva?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/photos/U86FnrpRR0k?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)!

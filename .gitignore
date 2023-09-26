@@ -24,3 +24,4 @@ go.work
 .idea
 
 postgres-data
+.DS_Store

@@ -8,7 +8,7 @@ low-level access to PostgreSQL functionality.
 ## Example Usage
 
 ```go
-pgConn, err := pgconn.Connect(context.Background(), os.Getenv("BARK_DATABASE_URL"))
+pgConn, err := pgconn.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 if err != nil {
 	log.Fatalln("pgconn failed to connect:", err)
 }

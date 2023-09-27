@@ -9,7 +9,7 @@ Establishing a Connection
 
 The primary way of establishing a connection is with [pgx.Connect]:
 
-    conn, err := pgx.Connect(context.Background(), os.Getenv("BARK_DATABASE_URL"))
+    conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 
 The database connection string can be in URL or DSN format. Both PostgreSQL settings and pgx settings can be specified
 here. In addition, a config struct can be created by [ParseConfig] and modified before establishing the connection with

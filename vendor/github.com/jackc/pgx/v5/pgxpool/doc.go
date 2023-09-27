@@ -6,12 +6,12 @@ Creating a Pool
 
 The primary way of creating a pool is with [pgxpool.New]:
 
-    pool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+    pool, err := pgxpool.New(context.Background(), os.Getenv("BARK_DATABASE_URL"))
 
 The database connection string can be in URL or DSN format. PostgreSQL settings, pgx settings, and pool settings can be
 specified here. In addition, a config struct can be created by [ParseConfig].
 
-    config, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
+    config, err := pgxpool.ParseConfig(os.Getenv("BARK_DATABASE_URL"))
     if err != nil {
         // ...
     }

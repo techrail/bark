@@ -59,8 +59,8 @@ It has to be written in golang for the sake of being great at handling incoming 
 ### Install it yourself
 If you have go version 1.20 or above installed, following are the steps to set up Bark on a machine after cloning the repository:
 
-- Set the appropriate value for `DATABASE_URL` environment variable. 
-The `DATABASE_URL` should be of the format `postgres://username:password@host:port/db?sslmode=disable`. For example: `export DATABASE_URL="postgres://vaibhav:mypassword@127.0.0.1:5432/log_db?sslmode=disable"`
+- Set the appropriate value for `BARK_DATABASE_URL` environment variable. 
+The `BARK_DATABASE_URL` should be of the format `postgres://username:password@host:port/db?sslmode=disable`. For example: `export BARK_DATABASE_URL="postgres://vaibhav:mypassword@127.0.0.1:5432/log_db?sslmode=disable"`
 - Navigate to the directory containing the `go.mod` file.
 - ~~Install the dependencies using the command `go get .`~~ The dependencies are included in the `vendor` directory in the codebase, so you don't need to install them separately.
 - To create the required tables navigate to the `_nocode/db/migrations` folder. Copy SQL commands from all the `.up.sql`, and run them in the `psql` terminal. Or you can use a migration tool like [golang-migrate](https://github.com/golang-migrate/migrate)

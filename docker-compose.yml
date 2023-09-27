@@ -11,7 +11,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgres://auth_user:pass@postgres:5432/bark?sslmode=disable
+      - BARK_DATABASE_URL=postgres://auth_user:pass@postgres:5432/bark?sslmode=disable
   postgres:
     image: postgres:15.4
     restart: always

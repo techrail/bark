@@ -52,7 +52,7 @@ func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 	}
 
 	if len(b.MoreData) == 0 {
-		b.MoreData = json.RawMessage("{\"test\":\"value\"}")
+		b.MoreData = json.RawMessage("{}")
 	}
 
 	return b, nil

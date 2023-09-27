@@ -18,9 +18,9 @@ func Config() *pgxpool.Config {
 	const defaultMaxConnIdleTime = time.Minute * 30
 	const defaultHealthCheckPeriod = time.Minute
 
-	fmt.Printf("Database connection string from Environment: %s\n", os.Getenv("DATABASE_URL"))
+	fmt.Printf("Database connection string from Environment: %s\n", os.Getenv("BARK_DATABASE_URL"))
 
-	dbConfig, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
+	dbConfig, err := pgxpool.ParseConfig(os.Getenv("BARK_DATABASE_URL"))
 	if err != nil {
 		log.Fatal("Failed to create a config, error: ", err)
 	}

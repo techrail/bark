@@ -2,7 +2,7 @@ CREATE TABLE app_log
 (
     id           BIGSERIAL PRIMARY KEY,
     log_time     TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE ('utc')),
-    log_level    VARCHAR                     NOT NULL DEFAULT 'info',
+    log_level    VARCHAR(16)                 NOT NULL DEFAULT 'info',
     service_name VARCHAR(64)                 NOT NULL DEFAULT 'def_svc',
     session_name VARCHAR(64)                 NOT NULL DEFAULT 'def_sess',
     code         VARCHAR(16)                 NOT NULL DEFAULT '000000',

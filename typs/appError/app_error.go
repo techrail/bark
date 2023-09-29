@@ -11,5 +11,5 @@ type AppErr struct {
 }
 
 func (ae AppErr) Error() string {
-	return fmt.Sprintf("%v, %v, %v", ae.Severity, ae.Code, ae.Msg)
+	return fmt.Sprintf("E#1L3TGS - %v, %v, %v", ae.Severity, ae.Code, ae.Msg)
 }

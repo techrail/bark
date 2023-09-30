@@ -2,10 +2,12 @@ package client
 
 import (
 	"fmt"
-	`strings`
+	"github.com/techrail/bark/client/controllers"
+	"github.com/techrail/bark/client/services/clientLogSender"
+	"strings"
 
-	`github.com/techrail/bark/appRuntime`
-	`github.com/techrail/bark/constants`
+	"github.com/techrail/bark/appRuntime"
+	"github.com/techrail/bark/constants"
 	"github.com/techrail/bark/models"
 )
 
@@ -145,13 +147,7 @@ func (c *Config) sendLogToServer(message, logLevel string) {
 
 	log.Code = getCode(&log)
 
-	go func() {
-		_, err := PostLog(c.BaseUrl+"/insertSingle", log)
-		if err.Severity == 1 {
-			fmt.Println(err.Error())
-			return
-		}
-	}()
+	controllers.SendSingleToClientChannel(log)
 
 	fmt.Printf("%s:\t %s -- %s\n", logLevel, c.SessionName, message)
 	// Todo: Add uber zap to avoid printing with PrintF (We don't want to handle sendLogToServer printing)
@@ -167,6 +163,7 @@ func NewClient(url, errLevel, svcName, sessName string) *Config {
 		sessName = appRuntime.SessionName
 		fmt.Printf("L#1L3WBF - Using %v as Session Name", sessName)
 	}
+	go clientLogSender.StartSendingLogs(url)
 
 	return &Config{
 		BaseUrl:     url,

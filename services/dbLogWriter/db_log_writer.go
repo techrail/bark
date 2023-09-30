@@ -50,6 +50,20 @@ func StartWritingLogs() {
 			if appRuntime.ShutdownRequested.Load() == true {
 				if len(channels.LogChannel) == 0 {
 					return
+				} else {
+					for i := 0; i < logBatchSizeStandard; i++ {
+						elem, ok := <-channels.LogChannel
+						if !ok {
+							fmt.Println("E#1KSPGX - Error occured while getting batch from channel")
+							break // Something went wrong
+						}
+						logBatch = append(logBatch, elem)
+					}
+					err := BarkLogDao.InsertBatch(logBatch)
+					if err != nil {
+						fmt.Println(err)
+					}
+					fmt.Println("L#1KSPHD - Batch inserted at ", time.Now().Format("2006-01-02 15:04:05"))
 				}
 			} else {
 				// fmt.Println("in sleep")

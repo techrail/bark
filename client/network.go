@@ -2,9 +2,12 @@ package client
 
 import (
 	"encoding/json"
+	`fmt`
+
+	"github.com/valyala/fasthttp"
+
 	"github.com/techrail/bark/models"
 	"github.com/techrail/bark/typs/appError"
-	"github.com/valyala/fasthttp"
 )
 
 // Todo: Write Issue: Bark isn't throwing an error when insertion fails.
@@ -25,8 +28,8 @@ func post(url, payload string) (string, appError.AppErr) {
 	bodyBytes := resp.Body()
 
 	if resp.Header.StatusCode() != fasthttp.StatusOK {
-		err.Msg = "POST request failed"
-		err.Code = "E#3HMV3G"
+		err.Msg = fmt.Sprintf("POST request failed. Code: %v | Message: %v", resp.Header.StatusCode(), string(resp.Body()))
+		err.Code = "E#1L3T9W"
 		err.Severity = 1
 	}
 

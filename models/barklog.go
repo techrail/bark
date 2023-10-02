@@ -9,6 +9,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	`github.com/techrail/bark/appRuntime`
+	`github.com/techrail/bark/constants`
 	"github.com/techrail/bark/resources"
 )
 
@@ -29,26 +31,26 @@ func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 		b.LogTime = time.Now().UTC()
 	}
 	if strings.TrimSpace(b.LogLevel) == "" {
-		b.LogLevel = "info"
+		b.LogLevel = constants.DefaultLogLevel
 	}
 	if strings.TrimSpace(b.ServiceName) == "" {
-		b.ServiceName = "def_svc"
+		b.ServiceName = constants.DefaultLogServiceName
 	}
 	if strings.TrimSpace(b.SessionName) == "" {
-		b.SessionName = "def_sess"
+		b.SessionName = appRuntime.SessionName
 	}
 
 	if strings.TrimSpace(b.Code) == "" && strings.TrimSpace(b.Message) == "" {
-		b.Code = "000000"
-		b.Message = "_no_msg_supplied_"
-		return b, fmt.Errorf("message and Code empty in Log")
+		b.Code = constants.DefaultLogCode
+		b.Message = constants.DefaultLogMessage
+		return b, fmt.Errorf("E#1L3VJG - message and Code empty in Log")
 	}
 
 	if strings.TrimSpace(b.Code) == "" {
-		b.Code = "000000"
+		b.Code = constants.DefaultLogCode
 	}
 	if strings.TrimSpace(b.Message) == "" {
-		b.Message = "_no_msg_supplied_"
+		b.Message = constants.DefaultLogMessage
 	}
 
 	if len(b.MoreData) == 0 {

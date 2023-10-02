@@ -2,74 +2,139 @@ package client
 
 import (
 	"fmt"
+	`strings`
 
+	`github.com/techrail/bark/appRuntime`
+	`github.com/techrail/bark/constants`
 	"github.com/techrail/bark/models"
 )
 
-// The client defines 7 levels of errors:
-// 1. Panic - The message you emit right before the program crashes
-// 2. Alert - The message needs to be sent as an alert to someone who must resolve it ASAP
-// 3. Error - The message indicating that there was an error and should be checked whenever possible
-// 4. Warning - The message indicating that something wrong could have happened but was handled. Can be overlooked in some cases.
-// 5. Notice - Something worth noticing, though it is fine to be ignored.
-// 6. Info - Just a log of some data - does not indicate any error
-// 7. Debug - used for debugging. It can represent any level of information but is only supposed to indicate a message emitted during a debug session
+// type webhook func(models.BarkLog) error
 
 type Config struct {
 	BaseUrl     string
 	ErrorLevel  string
 	ServiceName string
 	SessionName string
+	// AlertWebhook webhook
+}
+
+func (c *Config) parseMessage(msg string) models.BarkLog {
+	l := models.BarkLog{
+		ServiceName: c.ServiceName,
+		SessionName: c.SessionName,
+	}
+	// Look for `-` in the message
+	pos := strings.Index(msg, "-")
+	if pos < 1 {
+		// There is no `-` in the message.
+		l.Message = msg
+		l.Code = constants.DefaultLogCode
+		return l
+	}
+	// separate the message and meta info
+	l.Message = msg[pos:]
+	meta := msg[:pos]
+
+	// Separate the code and level
+	metas := strings.Split(meta, "#")
+	if len(metas) != 2 {
+		// Improperly formatted message
+		l.Message = msg
+	}
+
+	logLvl := strings.TrimSpace(metas[0])
+	logCode := strings.TrimSpace(metas[1])
+
+	if len(logLvl) != 1 {
+		l.LogLevel = constants.Info
+	} else {
+		l.LogLevel = getLogLevelFromCharacter(metas[0])
+	}
+
+	if len(logCode) < 1 || len(logCode) > 16 {
+		l.Code = constants.DefaultLogMessage
+	} else {
+		l.Code = logCode
+	}
+
+	return l
+}
+
+func getLogLevelFromCharacter(s string) string {
+	switch s {
+	case "P":
+		return constants.Error
+	case "A":
+		return constants.Alert
+	case "E":
+		return constants.Error
+	case "W":
+		return constants.Warning
+	case "N":
+		return constants.Notice
+	case "I":
+		return constants.Info
+	case "D":
+		return constants.Debug
+	default:
+		return constants.Info
+	}
 }
 
 func (c *Config) Panic(message string) {
-	c.log(message, Panic)
+	c.sendLogToServer(message, constants.Panic)
 }
 func (c *Config) Alert(message string) {
-	c.log(message, Alert)
+	// Todo: handle the alert webhook call here
+	c.sendLogToServer(message, constants.Alert)
 }
 func (c *Config) Error(message string) {
-	c.log(message, Error)
+	c.sendLogToServer(message, constants.Error)
 }
 func (c *Config) Warn(message string) {
-	c.log(message, Warning)
+	c.sendLogToServer(message, constants.Warning)
 }
 func (c *Config) Notice(message string) {
-	c.log(message, Notice)
+	c.sendLogToServer(message, constants.Notice)
 }
 func (c *Config) Info(message string) {
-	c.log(message, Info)
+	c.sendLogToServer(message, constants.Info)
 }
 func (c *Config) Debug(message string) {
-	c.log(message, Debug)
+	c.sendLogToServer(message, constants.Debug)
 }
 func (c *Config) Println(message string) {
-	c.log(message+"\n", Info)
+	c.sendLogToServer(message+"\n", constants.Info)
 }
 
 func (c *Config) Panicf(message string, format ...any) {
-	c.log(fmt.Sprintf(message, format...), Panic)
+	c.sendLogToServer(fmt.Sprintf(message, format...), constants.Panic)
 }
 func (c *Config) Alertf(message string, format ...any) {
-	c.log(fmt.Sprintf(message, format...), Alert)
+	c.sendLogToServer(fmt.Sprintf(message, format...), constants.Alert)
 }
 func (c *Config) Errorf(message string, format ...any) {
-	c.log(fmt.Sprintf(message, format...), Error)
+	c.sendLogToServer(fmt.Sprintf(message, format...), constants.Error)
 }
 func (c *Config) Warnf(message string, format ...any) {
-	c.log(fmt.Sprintf(message, format...), Warning)
+	c.sendLogToServer(fmt.Sprintf(message, format...), constants.Warning)
 }
 func (c *Config) Noticef(message string, format ...any) {
-	c.log(fmt.Sprintf(message, format...), Notice)
+	c.sendLogToServer(fmt.Sprintf(message, format...), constants.Notice)
 }
 func (c *Config) Infof(message string, format ...any) {
-	c.log(fmt.Sprintf(message, format...), Info)
+	c.sendLogToServer(fmt.Sprintf(message, format...), constants.Info)
 }
 func (c *Config) Debugf(message string, format ...any) {
-	c.log(fmt.Sprintf(message, format...), Debug)
+	c.sendLogToServer(fmt.Sprintf(message, format...), constants.Debug)
 }
 
-func (c *Config) log(message, logLevel string) {
+// func (c *Config) SetAlertWebhook(f webhook) {
+// 	c.AlertWebhook = f
+// }
+
+func (c *Config) sendLogToServer(message, logLevel string) {
 	// Todo: We have to parse the error message
 	log := models.BarkLog{
 		Message:     message,
@@ -89,7 +154,7 @@ func (c *Config) log(message, logLevel string) {
 	}()
 
 	fmt.Printf("%s:\t %s -- %s\n", logLevel, c.SessionName, message)
-	// Todo: Add uber zap to avoid printing with PrintF (We don't want to handle log printing)
+	// Todo: Add uber zap to avoid printing with PrintF (We don't want to handle sendLogToServer printing)
 }
 
 func getCode(log *models.BarkLog) string {
@@ -98,6 +163,11 @@ func getCode(log *models.BarkLog) string {
 }
 
 func NewClient(url, errLevel, svcName, sessName string) *Config {
+	if strings.TrimSpace(sessName) == "" {
+		sessName = appRuntime.SessionName
+		fmt.Printf("L#1L3WBF - Using %v as Session Name", sessName)
+	}
+
 	return &Config{
 		BaseUrl:     url,
 		ErrorLevel:  errLevel,

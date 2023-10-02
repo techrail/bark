@@ -51,7 +51,7 @@ func StartWritingLogs() {
 				if len(channels.LogChannel) == 0 {
 					return
 				} else {
-					for i := 0; i < logBatchSizeStandard; i++ {
+					for i := 0; i < len(channels.LogChannel); i++ {
 						elem, ok := <-channels.LogChannel
 						if !ok {
 							fmt.Println("E#1KSPGX - Error occured while getting batch from channel")

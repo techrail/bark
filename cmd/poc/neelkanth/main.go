@@ -6,16 +6,32 @@ import (
 	"log"
 	"net/http"
 	"time"
-
+    "github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func h(connPool *pgxpool.Pool, batch *pgx.Batch) {
-	// func h(connPool *pgxpool.Pool) {
-	// db.InsertQuery(connPool)
-	connPool.SendBatch(context.Background(), batch)
+	// Create a context with a timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Send the batch of queries
+	br := connPool.SendBatch(ctx, batch)
+
+	// Close the batch
+	defer br.Close()
+
+	// Process each query result in the batch
+	for i := 0; i < batch.Len(); i++ {
+		_, err := br.Exec()
+		if err != nil {
+			// Handle the error (you can also log it or return it)
+			fmt.Printf("Error executing query at index %d: %v\n", i, err)
+		}
+	}
 }
+
 
 func main() {
 	router := mux.NewRouter()

@@ -21,3 +21,8 @@ const (
 	Info    = "INFO"
 	Debug   = "DEBUG"
 )
+
+const (
+	SingleInsertUrl = "insertSingle"
+	BatchInsertUrl  = "insertMultiple"
+)

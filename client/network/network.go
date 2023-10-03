@@ -1,8 +1,8 @@
-package client
+package network
 
 import (
 	"encoding/json"
-	`fmt`
+	"fmt"
 
 	"github.com/valyala/fasthttp"
 

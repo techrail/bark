@@ -23,7 +23,7 @@ func Init() string {
 	if len(port) == 0 {
 		port = "8080"
 	}
-	address := ":"+port
+	address := ":" + port
 	return address
 }
 
@@ -41,5 +41,5 @@ func main() {
 	}
 	go dbLogWriter.StartWritingLogs()
 	log.Fatal(fasthttp.ListenAndServe(address, r.Handler))
-	
+
 }

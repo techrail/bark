@@ -3,10 +3,12 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/techrail/bark/client/barkslogger"
 	"github.com/techrail/bark/client/controllers"
 	"github.com/techrail/bark/client/services/clientLogSender"
-	"github.com/techrail/bark/client/slogger"
+	"io"
 	"log/slog"
+	"os"
 	"strings"
 
 	"github.com/techrail/bark/appRuntime"
@@ -21,7 +23,7 @@ type Config struct {
 	ErrorLevel  string
 	ServiceName string
 	SessionName string
-	Logger      *slog.Logger
+	Slogger     *slog.Logger
 	// AlertWebhook webhook
 }
 
@@ -90,72 +92,72 @@ func getLogLevelFromCharacter(s string) string {
 
 func (c *Config) Panic(message string) {
 	c.sendLogToServer(message, constants.Panic)
-	c.Logger.Log(context.Background(), slogger.LevelPanic, message)
+	c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
 }
 func (c *Config) Alert(message string) {
 	// Todo: handle the alert webhook call here
 	c.sendLogToServer(message, constants.Alert)
-	c.Logger.Log(context.Background(), slogger.LevelAlert, message)
+	c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
 }
 func (c *Config) Error(message string) {
 	c.sendLogToServer(message, constants.Error)
-	c.Logger.Error(message)
+	c.Slogger.Error(message)
 }
 func (c *Config) Warn(message string) {
 	c.sendLogToServer(message, constants.Warning)
-	c.Logger.Warn(message)
+	c.Slogger.Warn(message)
 }
 func (c *Config) Notice(message string) {
 	c.sendLogToServer(message, constants.Notice)
-	c.Logger.Log(context.Background(), slogger.LevelNotice, message)
+	c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
 }
 func (c *Config) Info(message string) {
 	c.sendLogToServer(message, constants.Info)
-	c.Logger.Info(message)
+	c.Slogger.Info(message)
 }
 func (c *Config) Debug(message string) {
 	c.sendLogToServer(message, constants.Debug)
-	c.Logger.Debug(message)
+	c.Slogger.Debug(message)
 }
 func (c *Config) Println(message string) {
 	c.sendLogToServer(message+"\n", constants.Info)
-	c.Logger.Info(message)
+	c.Slogger.Info(message)
 }
 
 func (c *Config) Panicf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	c.sendLogToServer(message, constants.Panic)
-	c.Logger.Log(context.Background(), slogger.LevelPanic, message)
+	c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
 }
 func (c *Config) Alertf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	c.sendLogToServer(message, constants.Alert)
-	c.Logger.Log(context.Background(), slogger.LevelAlert, message)
+	c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
 }
 func (c *Config) Errorf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	c.sendLogToServer(message, constants.Error)
-	c.Logger.Error(message)
+	c.Slogger.Error(message)
 }
 func (c *Config) Warnf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	c.sendLogToServer(message, constants.Warning)
-	c.Logger.Warn(message)
+	c.Slogger.Warn(message)
 }
 func (c *Config) Noticef(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	c.sendLogToServer(message, constants.Notice)
-	c.Logger.Log(context.Background(), slogger.LevelNotice, message)
+	c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
 }
 func (c *Config) Infof(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	c.sendLogToServer(message, constants.Info)
-	c.Logger.Info(message)
+	c.Slogger.Info(message)
 }
 func (c *Config) Debugf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	c.sendLogToServer(message, constants.Debug)
-	c.Logger.Debug(message)
+	c.Slogger.Debug(message)
 }
 
 // func (c *Config) SetAlertWebhook(f webhook) {
@@ -172,9 +174,6 @@ func (c *Config) sendLogToServer(message, logLevel string) {
 	}
 
 	controllers.SendSingleToClientChannel(log)
-
-	//fmt.Printf("%s:\t %s -- %s\n", logLevel, c.SessionName, message)
-	// Todo: Add uber zap to avoid printing with PrintF (We don't want to handle sendLogToServer printing)
 }
 
 func NewClient(url, errLevel, svcName, sessName string) *Config {
@@ -190,6 +189,16 @@ func NewClient(url, errLevel, svcName, sessName string) *Config {
 		ErrorLevel:  errLevel,
 		ServiceName: svcName,
 		SessionName: sessName,
-		Logger:      slogger.NewHandler(),
+		Slogger:     barkslogger.New(os.Stdout),
 	}
+}
+
+// WithCustomOut allows users to set output to custom writer instead of the default standard output
+func (c *Config) WithCustomOut(out io.Writer) {
+	c.Slogger = barkslogger.New(out)
+}
+
+// WithSlogHandler allows users to specify their own slog handler
+func (c *Config) WithSlogHandler(handler slog.Handler) {
+	c.Slogger = barkslogger.NewWithCustomHandler(handler)
 }

@@ -2,32 +2,63 @@ package tests
 
 import (
 	"github.com/techrail/bark/client"
+	"github.com/techrail/bark/client/barkslogger"
+	"github.com/techrail/bark/client/network"
+	"github.com/techrail/bark/constants"
 	"github.com/techrail/bark/models"
+	"log/slog"
+	"os"
 	"testing"
 )
 
-func Test_requester(t *testing.T) {
-	logClient := client.NewClient("http://localhost:8080/", "INFO", "ServicName", "localRun")
+func TestClient(t *testing.T) {
+	logClient := client.NewClient("http://localhost:8080/", constants.Info, "TestService", "localRun")
+	sendDummyLogsThroughAllMethods(logClient)
+}
 
-	// Print with formatter
+func TestClientWithCustomOut(t *testing.T) {
+	logClient := client.NewClient("http://localhost:8080/", constants.Info, "TestService", "localRun")
 
-	// Print without formatter
-	logClient.Error("Anime: Naruto")
-	logClient.Info("Anime: One Piece")
-	logClient.Debug("Anime: Bleach")
-	logClient.Warn("Anime: AOT")
+	file, _ := os.Create("../tmp/random.txt")
 
-	// Print without formatter
-	logClient.Errorf("Anime: %s", "Full Metal Alchemist")
-	logClient.Infof("Anime: %s", "Tokyo Ghoul")
-	logClient.Warnf("Warning: %s", "A day only has 24 hours!")
-	logClient.Debugf("Debug: %s", "A minute has 60 seconds!")
-	logClient.Panic("You don't want everybody to be nice, it's pathetic.")
+	logClient.WithCustomOut(file)
 
-	// Multiple Logs
+	sendDummyLogsThroughAllMethods(logClient)
+}
+
+func TestClientWithCustomSlogHandler(t *testing.T) {
+	logClient := client.NewClient("http://localhost:8080/", constants.Info, "TestService", "localRun")
+
+	file, _ := os.Create("../tmp/random.txt")
+
+	logClient.WithSlogHandler(slog.NewJSONHandler(file, barkslogger.Options()))
+
+	sendDummyLogsThroughAllMethods(logClient)
+}
+
+func TestPostLogArray(t *testing.T) {
 	var logs []models.BarkLog
 	logs = make([]models.BarkLog, 3)
 	logs[0] = models.BarkLog{Message: "someMessage"}
 	logs[1] = models.BarkLog{Message: "someMessage"}
 	logs[2] = models.BarkLog{Message: "someMessage"}
+	_, _ = network.PostLogArray("http://localhost:8080/"+constants.BatchInsertUrl, logs)
+}
+
+func sendDummyLogsThroughAllMethods(logClient *client.Config) {
+	// Print without formatter
+	logClient.Error("Error Message!")
+	logClient.Info("Info Message!")
+	logClient.Debug("Debug Message!")
+	logClient.Panic("Panic Message!")
+	logClient.Alert("Alert Message!")
+	logClient.Notice("Notice Message!")
+
+	// Print with formatter
+	logClient.Errorf("%s Message!", "Error")
+	logClient.Infof("%s Message!", "Info")
+	logClient.Debugf("%s Message!", "Debug")
+	logClient.Panicf("%s Message!", "Panic")
+	logClient.Alertf("%s Message!", "Alert")
+	logClient.Noticef("%s Message!", "Notice")
 }

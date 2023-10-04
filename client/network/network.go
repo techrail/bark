@@ -41,7 +41,7 @@ func PostLog(url string, log models.BarkLog) (string, appError.AppErr) {
 	return post(url, string(logRawJson))
 }
 
-func PostLogs(url string, log []models.BarkLog) (string, appError.AppErr) {
+func PostLogArray(url string, log []models.BarkLog) (string, appError.AppErr) {
 	logRawJson, _ := json.Marshal(log)
 	return post(url, string(logRawJson))
 }

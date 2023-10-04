@@ -26,7 +26,7 @@ func StartSendingLogs(serverUrl string) {
 				}
 				logBatch = append(logBatch, elem)
 			}
-			_, err := network.PostLogs(serverUrl+constants.BatchInsertUrl, logBatch)
+			_, err := network.PostLogArray(serverUrl+constants.BatchInsertUrl, logBatch)
 
 			if err.Severity == 1 {
 				fmt.Println(err.Msg)

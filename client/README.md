@@ -2,7 +2,8 @@
 
 ## IMPORTANT: It is not Yet Built
 
-## What do we want to do:
+## What does the client do? 
+The Bark client (just _client_ henceforth) is the _library_ side of the bark. It is the piece that takes in the logs from any golang program and sends it to the server which is configured against the client. It is supposed to have the utility functions 
 
 What has to be done finally:
 ```
@@ -17,6 +18,23 @@ User -> Request -> Make a single Network Call
 
 ```
 fmt.Println("A#1L1ZYG - Something")
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/techrail/bark/client"
+)
+
+func main() {
+	log := client.NewClient("http://bark.example.com", "INFO", "auth_servive", "auth_pod_abcd-xyz")
+	
+	log.Printf("Some log message")
+	log.Info("Some info log content")
+	log.Error("Some error occurrec")
+}
 ```
 
 ## Levels of Logs

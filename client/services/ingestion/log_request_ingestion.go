@@ -12,5 +12,4 @@ func InsertSingleRequest(logEntry models.BarkLog) {
 		return
 	}
 	channels.ClientChannel <- logEntry
-
 }

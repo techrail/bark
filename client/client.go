@@ -64,7 +64,7 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 }
 
 func getLogLevelFromCharacter(s string) string {
-	switch s {
+	switch strings.ToUpper(s) {
 	case "P":
 		return constants.Error
 	case "A":
@@ -110,6 +110,10 @@ func (c *Config) Println(message string) {
 	c.sendLogToServer(message+"\n", constants.Info)
 }
 
+func (c *Config) ParseAndSend(message string) {
+	controllers.SendSingleToClientChannel(c.parseMessage(message))
+}
+
 func (c *Config) Panicf(message string, format ...any) {
 	c.sendLogToServer(fmt.Sprintf(message, format...), constants.Panic)
 }
@@ -137,7 +141,6 @@ func (c *Config) Debugf(message string, format ...any) {
 // }
 
 func (c *Config) sendLogToServer(message, logLevel string) {
-	// Todo: We have to parse the error message
 	log := models.BarkLog{
 		Message:     message,
 		LogLevel:    logLevel,

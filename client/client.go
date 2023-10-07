@@ -152,44 +152,56 @@ func (c *Config) Error(message string) {
 	l.LogLevel = constants.Error
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Error(message)
+	if c.Slogger != nil {
+		c.Slogger.Error(message)
+	}
 }
 func (c *Config) Warn(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Warning
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Warn(message)
+	if c.Slogger != nil {
+		c.Slogger.Warn(message)
+	}
 }
 func (c *Config) Notice(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Notice
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+	if c.Slogger != nil {
+		c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+	}
 }
 func (c *Config) Info(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Info
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Info(message)
+	if c.Slogger != nil {
+		c.Slogger.Info(message)
+	}
 }
 func (c *Config) Debug(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Debug
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Debug(message)
+	if c.Slogger != nil {
+		c.Slogger.Debug(message)
+	}
 }
 func (c *Config) Println(message string) {
 	l := c.parseMessage(message)
 	go ingestion.InsertSingleRequest(l)
 
-	// In addition to sending the log to server, we should also print it!
-	fmt.Println(message)
-
-	c.Slogger.Info(message)
+	if c.Slogger != nil {
+		c.Slogger.Info(message)
+	} else {
+		// In addition to sending the log to server, we should also print it!
+		fmt.Println(message)
+	}
 }
 
 func (c *Config) Panicf(message string, format ...any) {
@@ -198,7 +210,9 @@ func (c *Config) Panicf(message string, format ...any) {
 	l.LogLevel = constants.Panic
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+	if c.Slogger != nil {
+		c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+	}
 }
 func (c *Config) Alertf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
@@ -206,7 +220,9 @@ func (c *Config) Alertf(message string, format ...any) {
 	l.LogLevel = constants.Alert
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+	if c.Slogger != nil {
+		c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+	}
 }
 func (c *Config) Errorf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
@@ -214,7 +230,9 @@ func (c *Config) Errorf(message string, format ...any) {
 	l.LogLevel = constants.Error
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Error(message)
+	if c.Slogger != nil {
+		c.Slogger.Error(message)
+	}
 }
 func (c *Config) Warnf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
@@ -222,7 +240,9 @@ func (c *Config) Warnf(message string, format ...any) {
 	l.LogLevel = constants.Warning
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Warn(message)
+	if c.Slogger != nil {
+		c.Slogger.Warn(message)
+	}
 }
 func (c *Config) Noticef(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
@@ -230,7 +250,9 @@ func (c *Config) Noticef(message string, format ...any) {
 	l.LogLevel = constants.Notice
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+	if c.Slogger != nil {
+		c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+	}
 }
 func (c *Config) Infof(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
@@ -238,7 +260,9 @@ func (c *Config) Infof(message string, format ...any) {
 	l.LogLevel = constants.Info
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Info(message)
+	if c.Slogger != nil {
+		c.Slogger.Info(message)
+	}
 }
 func (c *Config) Debugf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
@@ -246,7 +270,9 @@ func (c *Config) Debugf(message string, format ...any) {
 	l.LogLevel = constants.Debug
 	go ingestion.InsertSingleRequest(l)
 
-	c.Slogger.Debug(message)
+	if c.Slogger != nil {
+		c.Slogger.Debug(message)
+	}
 }
 
 // func (c *Config) SetAlertWebhook(f webhook) {

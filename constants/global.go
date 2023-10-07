@@ -13,6 +13,10 @@ const (
 )
 
 const (
+	MaxLogCodelength = 16 // DB constraint
+)
+
+const (
 	Panic   = "PANIC"
 	Alert   = "ALERT"
 	Error   = "ERROR"

@@ -2,22 +2,8 @@
 
 ## IMPORTANT: It is not Yet Built
 
-## What do we want to do:
-
-What has to be done finally:
-```
-User -> Request -> (Parse -> Channel -> Make a single or a batch Network Call)
-```
-
-But we can start with: 
-
-```
-User -> Request -> Make a single Network Call
-```
-
-```
-fmt.Println("A#1L1ZYG - Something")
-```
+## What does the client do? 
+The Bark client (just _client_ henceforth) is the _library_ side of the bark. It is the piece that takes in the logs from any golang program and sends it to the server which is configured against the client. It is supposed to have the utility functions to help users log to bark directly from go code without having to worry about network calls and such.
 
 ## Levels of Logs
 The client defines 7 levels of logs:

@@ -253,17 +253,6 @@ func (c *Config) Debugf(message string, format ...any) {
 // 	c.AlertWebhook = f
 // }
 
-//func (c *Config) sendLogToServer(message, logLevel string) {
-//	log := models.BarkLog{
-//		Message:     message,
-//		LogLevel:    logLevel,
-//		SessionName: c.SessionName,
-//		ServiceName: c.ServiceName,
-//	}
-//
-//	controllers.SendSingleToClientChannel(log)
-//}
-
 func NewClient(url, errLevel, svcName, sessName string) *Config {
 	if strings.TrimSpace(sessName) == "" {
 		sessName = appRuntime.SessionName

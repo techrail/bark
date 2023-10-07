@@ -73,7 +73,7 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 	}
 
 	if len(metas) == 1 {
-		if len(metas[0]) > 16 {
+		if len(metas[0]) > constants.MaxLogCodelength {
 			// Our code field is only 16 characters wide.
 			l.Message = msg
 			l.Code = constants.DefaultLogCode

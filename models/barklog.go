@@ -9,8 +9,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	`github.com/techrail/bark/appRuntime`
-	`github.com/techrail/bark/constants`
+	"github.com/techrail/bark/appRuntime"
+	"github.com/techrail/bark/constants"
 	"github.com/techrail/bark/resources"
 )
 

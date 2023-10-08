@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/techrail/bark/client/alerts"
 	"github.com/techrail/bark/client/barkslogger"
 	"github.com/techrail/bark/client/controllers"
 	"github.com/techrail/bark/client/services/clientLogSender"
@@ -24,7 +25,7 @@ type Config struct {
 	ServiceName string
 	SessionName string
 	Slogger     *slog.Logger
-	// AlertWebhook webhook
+	AlertWebhook *alerts.Webhook
 }
 
 func (c *Config) parseMessage(msg string) models.BarkLog {
@@ -160,9 +161,9 @@ func (c *Config) Debugf(message string, format ...any) {
 	c.Slogger.Debug(message)
 }
 
-// func (c *Config) SetAlertWebhook(f webhook) {
-// 	c.AlertWebhook = f
-// }
+func (c *Config) SetAlertWebhook(f webhook) {
+ 	c.AlertWebhook = f
+}
 
 func (c *Config) sendLogToServer(message, logLevel string) {
 	// Todo: We have to parse the error message

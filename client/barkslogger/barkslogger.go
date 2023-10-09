@@ -7,13 +7,18 @@ import (
 	"io"
 	"log"
 	"log/slog"
+	"os"
 )
 
 // Constants for custom log levels in bark.
 const (
-	LvlNotice = slog.Level(1)
-	LvlAlert  = slog.Level(9)
-	LvlPanic  = slog.Level(10)
+	LvlPanic   = slog.Level(10)
+	LvlAlert   = slog.Level(9)
+	LvlError   = slog.Level(8)
+	LvlWarning = slog.Level(4)
+	LvlNotice  = slog.Level(3)
+	LvlInfo    = slog.Level(0)
+	LvlDebug   = slog.Level(-4)
 )
 
 // BarkSlogHandler implements interface slog.Handler.
@@ -22,16 +27,41 @@ type BarkSlogHandler struct {
 	log *log.Logger
 }
 
+func (handle *BarkSlogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return slog.NewJSONHandler(os.Stdout, nil)
+}
+
+func (handle *BarkSlogHandler) WithGroup(name string) slog.Handler {
+	return handle
+}
+
+func (handle *BarkSlogHandler) Enabled(_ context.Context, level slog.Level) bool {
+	if level == LvlPanic || level == LvlAlert || level == LvlError ||
+		level == LvlWarning || level == LvlNotice || level == LvlInfo ||
+		level == LvlDebug {
+		return true
+	}
+	return false
+}
+
 // Handle is an implementation of slog.Handler interface's methods for BarkSlogHandler.
 func (handle *BarkSlogHandler) Handle(ctx context.Context, record slog.Record) error {
 	level := record.Level.String()
 	switch record.Level {
-	case LvlNotice:
-		level = constants.Notice
-	case LvlAlert:
-		level = constants.Alert
 	case LvlPanic:
 		level = constants.Panic
+	case LvlAlert:
+		level = constants.Alert
+	case LvlError:
+		level = constants.Error
+	case LvlWarning:
+		level = constants.Warning
+	case LvlNotice:
+		level = constants.Notice
+	case LvlInfo:
+		level = constants.Info
+	case LvlDebug:
+		level = constants.Debug
 	}
 	message := record.Message
 	handle.log.Println(level, message)
@@ -55,12 +85,20 @@ func Options() *slog.HandlerOptions {
 			if attr.Key == slog.LevelKey {
 				level := attr.Value.Any().(slog.Level)
 				switch level {
-				case LvlNotice:
-					attr.Value = slog.StringValue(constants.Notice)
 				case LvlPanic:
 					attr.Value = slog.StringValue(constants.Panic)
 				case LvlAlert:
 					attr.Value = slog.StringValue(constants.Alert)
+				case LvlError:
+					attr.Value = slog.StringValue(constants.Error)
+				case LvlWarning:
+					attr.Value = slog.StringValue(constants.Warning)
+				case LvlNotice:
+					attr.Value = slog.StringValue(constants.Notice)
+				case LvlInfo:
+					attr.Value = slog.StringValue(constants.Info)
+				case LvlDebug:
+					attr.Value = slog.StringValue(constants.Debug)
 				}
 			}
 			return attr

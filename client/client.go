@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/techrail/bark/client/barkslogger"
-	"github.com/techrail/bark/client/services/clientLogSender"
-	"github.com/techrail/bark/client/services/ingestion"
+	"github.com/techrail/bark/client/network"
+	"github.com/techrail/bark/client/services"
 	"io"
 	"log/slog"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/techrail/bark/appRuntime"
 	"github.com/techrail/bark/constants"
@@ -24,8 +25,11 @@ type Config struct {
 	ServiceName string
 	SessionName string
 	Slogger     *slog.Logger
+	BulkSend    bool
 	// AlertWebhook webhook
 }
+
+var slogger *slog.Logger
 
 func (c *Config) parseMessage(msg string) models.BarkLog {
 	l := models.BarkLog{
@@ -124,33 +128,46 @@ func getLogLevelFromCharacter(s string) string {
 	case "D":
 		return constants.Debug
 	default:
-		return constants.Info
+		return constants.DefaultLogLevel
+	}
+}
+
+func (c *Config) dispatchLogMessage(l models.BarkLog) {
+	if c.BulkSend {
+		go services.InsertSingleRequest(l)
+	} else {
+		go network.PostLog(c.BaseUrl+constants.SingleInsertUrl, l)
 	}
 }
 
 func (c *Config) Panic(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Panic
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
 	}
 }
+
 func (c *Config) Alert(message string) {
 	// Todo: handle the alert webhook call here
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
 	}
 }
+
 func (c *Config) Error(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Error
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Error(message)
@@ -159,7 +176,8 @@ func (c *Config) Error(message string) {
 func (c *Config) Warn(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Warning
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Warn(message)
@@ -168,7 +186,8 @@ func (c *Config) Warn(message string) {
 func (c *Config) Notice(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Notice
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
@@ -177,24 +196,29 @@ func (c *Config) Notice(message string) {
 func (c *Config) Info(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Info
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Info(message)
 	}
 }
+
 func (c *Config) Debug(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Debug
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Debug(message)
 	}
 }
+
 func (c *Config) Println(message string) {
 	l := c.parseMessage(message)
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Info(message)
@@ -208,67 +232,80 @@ func (c *Config) Panicf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Panic
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
 	}
 }
+
 func (c *Config) Alertf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
 	}
 }
+
 func (c *Config) Errorf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Error
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Error(message)
 	}
 }
+
 func (c *Config) Warnf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Warning
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Warn(message)
 	}
 }
+
 func (c *Config) Noticef(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Notice
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
 	}
 }
+
 func (c *Config) Infof(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Info
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Info(message)
 	}
 }
+
 func (c *Config) Debugf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Debug
-	go ingestion.InsertSingleRequest(l)
+	l.LogTime = time.Now().UTC()
+	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
 		c.Slogger.Debug(message)
@@ -279,20 +316,29 @@ func (c *Config) Debugf(message string, format ...any) {
 // 	c.AlertWebhook = f
 // }
 
-func NewClient(url, errLevel, svcName, sessName string) *Config {
+func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableBulkSend bool) *Config {
 	if strings.TrimSpace(sessName) == "" {
 		sessName = appRuntime.SessionName
 		fmt.Printf("L#1L3WBF - Using %v as Session Name", sessName)
 	}
 
-	go clientLogSender.StartSendingLogs(url)
+	if enableBulkSend {
+		go services.StartSendingLogs(url)
+	}
+
+	if enableSlog {
+		slogger = barkslogger.New(os.Stdout)
+	} else {
+		slogger = nil
+	}
 
 	return &Config{
 		BaseUrl:     url,
 		ErrorLevel:  errLevel,
 		ServiceName: svcName,
 		SessionName: sessName,
-		Slogger:     barkslogger.New(os.Stdout),
+		Slogger:     slogger,
+		BulkSend:    enableBulkSend,
 	}
 }
 

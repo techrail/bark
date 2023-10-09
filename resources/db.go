@@ -24,7 +24,7 @@ func InitDB() error {
 	}
 
 	// Ping DB
-	err = BarkDb.Client.Ping(context.Background());
+	err = BarkDb.Client.Ping(context.Background())
 	if err != nil {
 		return fmt.Errorf("E#1KDZPY - Opening database failed. Error: %v\n", err)
 	}

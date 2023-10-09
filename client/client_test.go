@@ -14,76 +14,165 @@ func init() {
 	client = NewClient("http://localhost/bark", "info", "testSvc", "testSess")
 }
 
-func TestConfigParseMessage(t *testing.T) {
+func TestConfigParseMessage1(t *testing.T) {
 	l := client.parseMessage("D#LMID1 - Log message1")
-	if l.LogLevel != constants.Debug {
-		t.Errorf("Expected Debug level")
-	} else {
-		fmt.Println("1...OK")
+	if l.LogLevel != constants.Debug || l.Code != "LMID1" || l.Message != "Log message1" {
+		t.Errorf("unexpected values")
 	}
+}
 
-	if l.Code != "LMID1" {
-		t.Errorf("Expected LMID1")
-	} else {
-		fmt.Println("2...OK")
+func TestConfigParseMessage2(t *testing.T) {
+	l := client.parseMessage("I#LMID2 - Log message2")
+	if l.LogLevel != constants.Info || l.Code != "LMID2" || l.Message != "Log message2" {
+		t.Errorf("unexpected values")
 	}
+}
 
-	if l.Message != "Log message1" {
-		t.Errorf("Should be `Log message1`. Found `%v`", l.Message)
-	} else {
-		fmt.Println("3...OK")
+func TestConfigParseMessage3(t *testing.T) {
+	l := client.parseMessage("N#LMID3 - Log message3")
+	if l.LogLevel != constants.Notice || l.Code != "LMID3" || l.Message != "Log message3" {
+		t.Errorf("unexpected values")
 	}
+}
 
-	// ------------------------------------------------------------
-	l = client.parseMessage("I#LMID2 - Log message2")
-	if l.LogLevel != constants.Info {
-		t.Errorf("Expected Info level")
-	} else {
-		fmt.Println("4...OK")
+func TestConfigParseMessage4(t *testing.T) {
+	l := client.parseMessage("W#LMID4 - Log message4")
+	if l.LogLevel != constants.Warning || l.Code != "LMID4" || l.Message != "Log message4" {
+		t.Errorf("unexpected values")
 	}
+}
 
-	if l.Code != "LMID2" {
-		t.Errorf("Expected LMID2")
-	} else {
-		fmt.Println("5...OK")
+func TestConfigParseMessage5(t *testing.T) {
+	l := client.parseMessage("E#LMID5 - Log message5")
+	if l.LogLevel != constants.Error || l.Code != "LMID5" || l.Message != "Log message5" {
+		t.Errorf("unexpected values")
 	}
+}
 
-	if l.Message != "Log message2" {
-		t.Errorf("Should be `Log message2`. Found `%v`", l.Message)
-	} else {
-		fmt.Println("6...OK")
+func TestConfigParseMessage6(t *testing.T) {
+	l := client.parseMessage("A#LMID6 - Log message6")
+	if l.LogLevel != constants.Alert || l.Code != "LMID6" || l.Message != "Log message6" {
+		t.Errorf("unexpected values")
 	}
+}
 
-	// --------------------------------------------------
-	l = client.parseMessage("L# - Log message 3")
-	if l.LogLevel != constants.DefaultLogLevel {
-		t.Errorf("Should have been an error!")
-	} else {
-		fmt.Println("7...OK")
+func TestConfigParseMessage7(t *testing.T) {
+	l := client.parseMessage("P#LMID7 - Log message7")
+	if l.LogLevel != constants.Panic || l.Code != "LMID7" || l.Message != "Log message7" {
+		t.Errorf("unexpected values")
 	}
+}
 
-	if l.Code != constants.DefaultLogCode {
-		t.Errorf("Not the right code!")
-	} else {
-		fmt.Println("8...OK")
+func TestConfigParseMessage8(t *testing.T) {
+	l := client.parseMessage("LMID8 - Log message8")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != "LMID8" || l.Message != "Log message8" {
+		t.Errorf("unexpected values")
 	}
+}
 
-	if l.Message != "L# - Log message 3" {
-		t.Errorf("Should be `L# - Log message 3`!")
-	} else {
-		fmt.Println("9...OK")
+func TestConfigParseMessage9(t *testing.T) {
+	l := client.parseMessage("Log message9")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "Log message9" {
+		t.Errorf("unexpected values")
 	}
+}
 
-	// --------------------------------------------------
-	// --------------------------------------------------
-	// --------------------------------------------------
-	// --------------------------------------------------
-	// --------------------------------------------------
-	// --------------------------------------------------
-	// --------------------------------------------------
-	// --------------------------------------------------
-	// --------------------------------------------------
-	// --------------------------------------------------
+func TestConfigParseMessage10(t *testing.T) {
+	l := client.parseMessage("- Log message10")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "- Log message10" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage11(t *testing.T) {
+	l := client.parseMessage(" # - Log message11")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != " # - Log message11" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage12(t *testing.T) {
+	l := client.parseMessage("X# - Log message12")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "X# - Log message12" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage13(t *testing.T) {
+	l := client.parseMessage("XX# - Log message13")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "XX# - Log message13" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage14(t *testing.T) {
+	l := client.parseMessage("XX#LMID14 - Log message14")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "XX#LMID14 - Log message14" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage15(t *testing.T) {
+	l := client.parseMessage("XX#LMIDINTHISCASEISVERYVERYLONG - Log message15")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "XX#LMIDINTHISCASEISVERYVERYLONG - Log message15" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage16(t *testing.T) {
+	l := client.parseMessage("#LMIDINTHISCASEISVERYVERYLONG - Log message16")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "#LMIDINTHISCASEISVERYVERYLONG - Log message16" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage17(t *testing.T) {
+	l := client.parseMessage("#LMID17 - Log message17")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "#LMID17 - Log message17" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage18(t *testing.T) {
+	l := client.parseMessage("D#LMID18 - Log message18")
+	if l.LogLevel != constants.Debug || l.Code != "LMID18" || l.Message != "Log message18" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage19(t *testing.T) {
+	l := client.parseMessage("LMIDINTHISCASEISVERYVERYLONG - Log message19")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "LMIDINTHISCASEISVERYVERYLONG - Log message19" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage20(t *testing.T) {
+	l := client.parseMessage("E#LMID20 - Log message20 - with - more - dashes")
+	if l.LogLevel != constants.Error || l.Code != "LMID20" || l.Message != "Log message20 - with - more - dashes" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage21(t *testing.T) {
+	l := client.parseMessage("XX#LMID21 - Log message21")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "XX#LMID21 - Log message21" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage22(t *testing.T) {
+	l := client.parseMessage("")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != "" {
+		t.Errorf("unexpected values")
+	}
+}
+
+func TestConfigParseMessage23(t *testing.T) {
+	l := client.parseMessage(" ")
+	if l.LogLevel != constants.DefaultLogLevel || l.Code != constants.DefaultLogCode || l.Message != " " {
+		t.Errorf("unexpected values")
+	}
 }
 
 func TestPrint(t *testing.T) {

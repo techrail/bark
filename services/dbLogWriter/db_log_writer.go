@@ -23,7 +23,7 @@ func StartWritingLogs() {
 	for {
 		logChannelLength = len(channels.LogChannel)
 		var logBatch = []models.BarkLog{}
-		if logChannelLength > logBatchSizeStandard {
+		if logChannelLength >= logBatchSizeStandard {
 			// Bulk insert
 			for i := 0; i < logBatchSizeStandard; i++ {
 				elem, ok := <-channels.LogChannel

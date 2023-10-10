@@ -1,17 +1,3 @@
--- CREATE TABLE IF NOT EXISTS key_value
--- (
---     key        VARCHAR(512) PRIMARY KEY,
---     value      TEXT      NOT NULL,
---     created_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE ('utc')),
---     updated_at TIMESTAMP NOT NULL DEFAULT (NOW() AT TIME ZONE ('utc')),
---     more_data  JSONB     NOT NULL DEFAULT '{}'::JSONB
--- );
---
--- INSERT INTO key_value
--- VALUES ('logger', 'bark');
---
--- ---------------------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS app_log
 (
     id           BIGSERIAL PRIMARY KEY,

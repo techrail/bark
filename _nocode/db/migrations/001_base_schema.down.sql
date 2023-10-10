@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS app_log;
+DROP TABLE IF EXISTS key_value;

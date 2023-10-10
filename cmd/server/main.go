@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/techrail/bark/models"
 	"log"
 	"os"
 
@@ -35,10 +36,16 @@ func main() {
 	r.POST("/insertSingle", controllers.SendSingleToChannel)
 	r.POST("/insertMultiple", controllers.SendMultipleToChannel)
 	r.POST("/shutdownServiceAsap", controllers.ShutdownService)
-	err := resources.InitDB()
+	err := resources.InitDb()
 	if err != nil {
 		log.Fatal("E#1KDZRP - " + err.Error())
 	}
+	bld := models.NewBarkLogDao()
+	err = bld.InsertServerStartedLog()
+	if err != nil {
+		log.Fatal("P#1LQ2YQ - Bark server start failed: " + err.Error())
+	}
+
 	go dbLogWriter.StartWritingLogs()
 	log.Fatal(fasthttp.ListenAndServe(address, r.Handler))
 

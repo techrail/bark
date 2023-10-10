@@ -38,6 +38,7 @@ func post(url, payload string) (string, appError.AppErr) {
 
 func PostLog(url string, log models.BarkLog) (string, appError.AppErr) {
 	logRawJson, _ := json.Marshal(log)
+	//fmt.Println("L#1LLULW - HERE")
 	return post(url, string(logRawJson))
 }
 

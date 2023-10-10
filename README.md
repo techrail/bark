@@ -49,12 +49,12 @@ However, it is worth noting that PostgreSQL is not designed to store enormous am
 It has to be written in golang for the sake of being great at handling incoming traffic bursts, lining up the logs and sending them in a load-controlled manner to PostgreSQL (because PostgreSQL is not optimized for that kinda stuff).
 
 # Installation and Usage
-### Prerequisite
+## Prerequisites
 
-- Go ([Golang](https://go.dev/)) version 1.20+
+- Go ([Golang](https://go.dev/)) version 1.20+ (if you want to compile the project)
 - PostgreSQL database version 12+
 
-## Installation
+## Server Installation
 
 ### Install it yourself
 If you have go version 1.20 or above installed, following are the steps to set up Bark on a machine after cloning the repository:
@@ -68,7 +68,7 @@ The `BARK_DATABASE_URL` should be of the format `postgres://username:password@ho
 
 To test if the library is up and running as expected, open a browser and navigate to the URL: [localhost:8080/hello/vaibhav](http://localhost:8080/hello/vaibhav)
 
-You should see a text rendered on your browser saying `Hello, vaibhav!` 
+You should see a text rendered on your browser saying `Hello, vaibhav!`
 
 ### Get it from Docker
 You can pull bark using docker as well: 
@@ -91,6 +91,10 @@ docker-compose up
 And it should start running. You can then visit [http://localhost:18080/hello/vaibhav](http://localhost:18080/hello/vaibhav) and you should be greeted with the `Hello, vaibhav!` message!
 
 **NOTE**: Please bear with us as we work fixing the docker versions.
+
+# Usage in a Golang project
+
+_To be written_
 
 # What is it NOT?
 - **It is not a replacement for Plaintext logs** - Bark should be able to write to a plaintext log file in parallel to throwing items into Postgres. In case Bark server cannot write to the database, it will emit your log messages on the server's STDOUT.

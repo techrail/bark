@@ -2,7 +2,7 @@ package constants
 
 const (
 	AppName    = "Bark"
-	AppVersion = "0.2"
+	AppVersion = "1.0.0"
 )
 
 const (
@@ -10,6 +10,7 @@ const (
 	DefaultLogLevel       = "INFO"
 	DefaultLogMessage     = "_no_msg_supplied_"
 	DefaultLogServiceName = "def_svc"
+	DefaultLogSessionName = "def_sess"
 )
 
 const (

@@ -1,4 +1,4 @@
-package ingestion
+package services
 
 import (
 	"fmt"

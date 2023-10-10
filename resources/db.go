@@ -15,25 +15,19 @@ type BarkPostgresDb struct {
 
 var BarkDb *BarkPostgresDb
 
-func InitDB() error {
+func InitDb() error {
 	// Connect to Postgres DB instance
 	var err error
-	BarkDb, err = OpenDB()
+	BarkDb, err = OpenDb()
 	if err != nil {
 		return fmt.Errorf("E#1KDZOZ - Opening database failed. Error: %v\n", err)
 	}
 
-	// Ping DB
-	err = BarkDb.Client.Ping(context.Background())
-	if err != nil {
-		return fmt.Errorf("E#1KDZPY - Opening database failed. Error: %v\n", err)
-	}
-
-	fmt.Println("E#1KDZG7 - successfully connected to database")
+	// NOTE: The caller must check the connection being returned
 	return nil
 }
 
-func OpenDB() (*BarkPostgresDb, error) {
+func OpenDb() (*BarkPostgresDb, error) {
 	connPool, err := pgxpool.NewWithConfig(context.Background(), Config())
 	if err != nil {
 		return &BarkPostgresDb{}, fmt.Errorf("E#1KDW57 - error connecting to db: %w", err)
@@ -42,12 +36,6 @@ func OpenDB() (*BarkPostgresDb, error) {
 	return &BarkPostgresDb{Client: connPool}, nil
 }
 
-// func to ping the database
-func (d *BarkPostgresDb) PingDB(ctx context.Context) error {
-	return d.Client.Ping(ctx)
-}
-
-// func to close database connection
-func (d *BarkPostgresDb) CloseDB() {
+func (d *BarkPostgresDb) CloseDb() {
 	d.Client.Close()
 }

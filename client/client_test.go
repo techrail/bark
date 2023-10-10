@@ -11,7 +11,7 @@ import (
 var client *Config
 
 func init() {
-	client = NewClient("http://localhost/bark", "info", "testSvc", "testSess")
+	client = NewClient("http://localhost/bark", "info", "testSvc", "testSess", true, false)
 }
 
 func TestConfigParseMessage1(t *testing.T) {

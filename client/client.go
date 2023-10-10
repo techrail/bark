@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/techrail/bark/client/barkslogger"
 	"github.com/techrail/bark/client/network"
@@ -144,6 +145,7 @@ func (c *Config) Panic(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Panic
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -156,6 +158,7 @@ func (c *Config) Alert(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -167,6 +170,7 @@ func (c *Config) Error(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Error
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -177,6 +181,7 @@ func (c *Config) Warn(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Warning
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -187,6 +192,7 @@ func (c *Config) Notice(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Notice
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -197,6 +203,7 @@ func (c *Config) Info(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Info
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -208,6 +215,7 @@ func (c *Config) Debug(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Debug
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -218,13 +226,63 @@ func (c *Config) Debug(message string) {
 func (c *Config) Println(message string) {
 	l := c.parseMessage(message)
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
-		c.Slogger.Info(message)
+		switch l.LogLevel {
+		case PANIC:
+			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+		case ALERT:
+			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+		case ERROR:
+			c.Slogger.Error(message)
+		case WARNING:
+			c.Slogger.Warn(message)
+		case NOTICE:
+			c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+		case DEBUG:
+			c.Slogger.Debug(message)
+		case INFO:
+			fallthrough
+		default:
+			c.Slogger.Info(message)
+		}
 	} else {
 		// In addition to sending the log to server, we should also print it!
 		fmt.Println(message)
+	}
+}
+
+func (c *Config) Printf(message string, format ...any) {
+	msg := fmt.Sprintf(message, format...)
+	l := c.parseMessage(msg)
+	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
+	c.dispatchLogMessage(l)
+
+	if c.Slogger != nil {
+		switch l.LogLevel {
+		case PANIC:
+			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+		case ALERT:
+			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+		case ERROR:
+			c.Slogger.Error(message)
+		case WARNING:
+			c.Slogger.Warn(message)
+		case NOTICE:
+			c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+		case DEBUG:
+			c.Slogger.Debug(message)
+		case INFO:
+			fallthrough
+		default:
+			c.Slogger.Info(message)
+		}
+	} else {
+		// In addition to sending the log to server, we should also print it!
+		fmt.Println(msg)
 	}
 }
 
@@ -233,6 +291,7 @@ func (c *Config) Panicf(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Panic
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -245,6 +304,7 @@ func (c *Config) Alertf(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -257,6 +317,7 @@ func (c *Config) Errorf(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Error
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -269,6 +330,7 @@ func (c *Config) Warnf(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Warning
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -281,6 +343,7 @@ func (c *Config) Noticef(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Notice
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -293,6 +356,7 @@ func (c *Config) Infof(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Info
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -305,6 +369,7 @@ func (c *Config) Debugf(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Debug
 	l.LogTime = time.Now().UTC()
+	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -320,6 +385,11 @@ func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableB
 	if strings.TrimSpace(sessName) == "" {
 		sessName = appRuntime.SessionName
 		fmt.Printf("L#1L3WBF - Using %v as Session Name", sessName)
+	}
+
+	if !isValid(errLevel) {
+		fmt.Printf("L#1LPYG2 - %v is not an acceptable log level. INFO will be used as the default log level", errLevel)
+		errLevel = INFO
 	}
 
 	if enableBulkSend {

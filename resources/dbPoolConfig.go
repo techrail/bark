@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	nurl "net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -17,6 +19,20 @@ func Config() *pgxpool.Config {
 	const defaultMaxConnLifetime = time.Hour
 	const defaultMaxConnIdleTime = time.Minute * 30
 	const defaultHealthCheckPeriod = time.Minute
+
+	dbUrl := os.Getenv("BARK_DATABASE_URL")
+	if strings.TrimSpace(dbUrl) == "" {
+		log.Fatal("P#1LQ32D - Database URL is required")
+	} else {
+		u, err := nurl.Parse(dbUrl)
+		if err != nil {
+			log.Fatal("P#1LQ36U - Database URL is not OK: " + dbUrl)
+		}
+
+		if u.Scheme != "postgres" && u.Scheme != "postgresql" {
+			log.Fatal("P#1LQ37D - Database URL must begin with postgres:// or postgresql:// : " + dbUrl)
+		}
+	}
 
 	fmt.Printf("Database connection string from Environment: %s\n", os.Getenv("BARK_DATABASE_URL"))
 

@@ -12,12 +12,12 @@ import (
 )
 
 func TestClient(t *testing.T) {
-	logClient := client.NewClient("http://localhost:8080/", constants.Info, "TestService", "localRun")
+	logClient := client.NewClient("http://localhost:8080/", constants.Info, "TestService", "localRun", false, false)
 	sendDummyLogsThroughAllMethods(logClient)
 }
 
 func TestClientWithCustomOut(t *testing.T) {
-	logClient := client.NewClient("http://localhost:8080/", constants.Info, "TestService", "localRun")
+	logClient := client.NewClient("http://localhost:8080/", constants.Info, "TestService", "localRun", false, false)
 
 	file, _ := os.Create("../tmp/random.txt")
 
@@ -27,7 +27,7 @@ func TestClientWithCustomOut(t *testing.T) {
 }
 
 func TestClientWithCustomSlogHandler(t *testing.T) {
-	logClient := client.NewClient("http://localhost:8080/", constants.Info, "TestService", "localRun")
+	logClient := client.NewClient("http://localhost:8080/", constants.Info, "TestService", "localRun", false, false)
 
 	file, _ := os.Create("../tmp/random.txt")
 

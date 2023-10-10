@@ -23,7 +23,6 @@ const (
 
 // BarkSlogHandler implements interface slog.Handler.
 type BarkSlogHandler struct {
-	slog.Handler
 	log *log.Logger
 }
 
@@ -71,8 +70,7 @@ func (handle *BarkSlogHandler) Handle(ctx context.Context, record slog.Record) e
 // NewBarkSlogHandler returns an object of BarkSlogHandler
 func NewBarkSlogHandler(out io.Writer) *BarkSlogHandler {
 	handler := &BarkSlogHandler{
-		Handler: slog.NewJSONHandler(out, nil),
-		log:     log.New(out, "", log.Ldate|log.Ltime),
+		log: log.New(out, "", log.Ldate|log.Ltime),
 	}
 	return handler
 }

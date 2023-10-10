@@ -2,7 +2,7 @@ package constants
 
 const (
 	AppName    = "Bark"
-	AppVersion = "0.2"
+	AppVersion = "1.0.0"
 )
 
 const (

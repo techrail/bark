@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/techrail/bark/appRuntime"
 	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/techrail/bark/appRuntime"
 	"github.com/techrail/bark/constants"
 	"github.com/techrail/bark/resources"
 )
@@ -37,7 +37,7 @@ func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 		b.ServiceName = constants.DefaultLogServiceName
 	}
 	if strings.TrimSpace(b.SessionName) == "" {
-		b.SessionName = appRuntime.SessionName
+		b.SessionName = constants.DefaultLogSessionName
 	}
 
 	if strings.TrimSpace(b.Code) == "" && strings.TrimSpace(b.Message) == "" {
@@ -93,6 +93,18 @@ func (bld *BarkLogDao) Insert(l BarkLog) error {
 		return fmt.Errorf("E#1KGY97 - error while inserting log: %w", err)
 	}
 	return nil
+}
+
+func (bld *BarkLogDao) InsertServerStartedLog() error {
+	return bld.Insert(BarkLog{
+		LogTime:     time.Now().UTC(),
+		LogLevel:    constants.Info,
+		ServiceName: "Bark Server",
+		SessionName: appRuntime.SessionName,
+		Code:        "1LQ2X3",
+		Message:     "Server started",
+		MoreData:    json.RawMessage("{}"),
+	})
 }
 
 func (bld *BarkLogDao) InsertBatch(l []BarkLog) error {

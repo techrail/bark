@@ -1,4 +1,4 @@
-package clientLogSender
+package services
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ func StartSendingLogs(serverUrl string) {
 	for {
 		clientChannelLength = len(channels.ClientChannel)
 		var logBatch = []models.BarkLog{}
-		if clientChannelLength > logBatchSizeStandard {
+		if clientChannelLength >= logBatchSizeStandard {
 			// Bulk insert
 			for i := 0; i < logBatchSizeStandard; i++ {
 				elem, ok := <-channels.ClientChannel
@@ -40,7 +40,7 @@ func StartSendingLogs(serverUrl string) {
 				fmt.Println(err.Msg)
 			}
 		} else {
-			time.Sleep(1 * time.Second)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }

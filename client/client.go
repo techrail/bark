@@ -29,6 +29,7 @@ type Config struct {
 	Slogger      *slog.Logger
 	BulkSend     bool
 	AlertWebhook webhook
+	BlockOnAlert bool
 }
 
 var slogger *slog.Logger
@@ -162,13 +163,26 @@ func (c *Config) Alert(message string) {
 	c.dispatchLogMessage(l)
 
 	if c.AlertWebhook != nil {
-		err := c.AlertWebhook(l)
-		if err != nil {
-			if c.Slogger != nil {
-				c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
-			} else {
-				fmt.Println("unable to send alert")
+		if c.BlockOnAlert {
+			err := c.AlertWebhook(l)
+			if err != nil {
+				if c.Slogger != nil {
+					c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+				} else {
+					fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
+				}
 			}
+		} else {
+			go func() {
+				err := c.AlertWebhook(l)
+				if err != nil {
+					if c.Slogger != nil {
+						c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+					} else {
+						fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
+					}
+				}
+			}()
 		}
 	}
 
@@ -319,13 +333,26 @@ func (c *Config) Alertf(message string, format ...any) {
 	c.dispatchLogMessage(l)
 
 	if c.AlertWebhook != nil {
-		err := c.AlertWebhook(l)
-		if err != nil {
-			if c.Slogger != nil {
-				c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
-			} else {
-				fmt.Println("unable to send alert")
+		if c.BlockOnAlert {
+			err := c.AlertWebhook(l)
+			if err != nil {
+				if c.Slogger != nil {
+					c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+				} else {
+					fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
+				}
 			}
+		} else {
+			go func() {
+				err := c.AlertWebhook(l)
+				if err != nil {
+					if c.Slogger != nil {
+						c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+					} else {
+						fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
+					}
+				}
+			}()
 		}
 	}
 
@@ -399,8 +426,9 @@ func (c *Config) Debugf(message string, format ...any) {
 	}
 }
 
-func (c *Config) SetAlertWebhook(f webhook) {
+func (c *Config) SetAlertWebhook(f webhook, block bool) {
 	c.AlertWebhook = f
+	c.BlockOnAlert = block
 }
 
 func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableBulkSend bool) *Config {

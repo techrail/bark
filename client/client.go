@@ -4,30 +4,31 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/techrail/bark/client/barkslogger"
-	"github.com/techrail/bark/client/network"
-	"github.com/techrail/bark/client/services"
 	"io"
 	"log/slog"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/techrail/bark/client/barkslogger"
+	"github.com/techrail/bark/client/network"
+	"github.com/techrail/bark/client/services"
+
 	"github.com/techrail/bark/appRuntime"
 	"github.com/techrail/bark/constants"
 	"github.com/techrail/bark/models"
 )
 
-// type webhook func(models.BarkLog) error
+type webhook func(models.BarkLog) error
 
 type Config struct {
-	BaseUrl     string
-	ErrorLevel  string
-	ServiceName string
-	SessionName string
-	Slogger     *slog.Logger
-	BulkSend    bool
-	// AlertWebhook webhook
+	BaseUrl      string
+	ErrorLevel   string
+	ServiceName  string
+	SessionName  string
+	Slogger      *slog.Logger
+	BulkSend     bool
+	AlertWebhook webhook
 }
 
 var slogger *slog.Logger
@@ -153,13 +154,36 @@ func (c *Config) Panic(message string) {
 	}
 }
 
-func (c *Config) Alert(message string) {
-	// Todo: handle the alert webhook call here
+func (c *Config) Alert(message string, blocking bool) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
 	l.LogTime = time.Now().UTC()
 	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
+
+	if c.AlertWebhook != nil {
+		if blocking {
+			err := c.AlertWebhook(l)
+			if err != nil {
+				if c.Slogger != nil {
+					c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+				} else {
+					fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
+				}
+			}
+		} else {
+			go func() {
+				err := c.AlertWebhook(l)
+				if err != nil {
+					if c.Slogger != nil {
+						c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+					} else {
+						fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
+					}
+				}
+			}()
+		}
+	}
 
 	if c.Slogger != nil {
 		c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
@@ -299,13 +323,37 @@ func (c *Config) Panicf(message string, format ...any) {
 	}
 }
 
-func (c *Config) Alertf(message string, format ...any) {
+func (c *Config) Alertf(message string, blocking bool, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
 	l.LogTime = time.Now().UTC()
 	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
+
+	if c.AlertWebhook != nil {
+		if blocking {
+			err := c.AlertWebhook(l)
+			if err != nil {
+				if c.Slogger != nil {
+					c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+				} else {
+					fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
+				}
+			}
+		} else {
+			go func() {
+				err := c.AlertWebhook(l)
+				if err != nil {
+					if c.Slogger != nil {
+						c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+					} else {
+						fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
+					}
+				}
+			}()
+		}
+	}
 
 	if c.Slogger != nil {
 		c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
@@ -377,9 +425,9 @@ func (c *Config) Debugf(message string, format ...any) {
 	}
 }
 
-// func (c *Config) SetAlertWebhook(f webhook) {
-// 	c.AlertWebhook = f
-// }
+func (c *Config) SetAlertWebhook(f webhook) {
+	c.AlertWebhook = f
+}
 
 func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableBulkSend bool) *Config {
 	if strings.TrimSpace(sessName) == "" {

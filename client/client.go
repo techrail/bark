@@ -164,8 +164,11 @@ func (c *Config) Alert(message string) {
 	if c.AlertWebhook != nil {
 		err := c.AlertWebhook(l)
 		if err != nil {
-			// log error sending webhook inline to avoid infinite loop and ignoring the message
-			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send webhook")
+			if c.Slogger != nil {
+				c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+			} else {
+				fmt.Println("unable to send alert")
+			}
 		}
 	}
 
@@ -318,8 +321,11 @@ func (c *Config) Alertf(message string, format ...any) {
 	if c.AlertWebhook != nil {
 		err := c.AlertWebhook(l)
 		if err != nil {
-			// log error sending webhook inline to avoid infinite loop and ignoring the message
-			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send webhook")
+			if c.Slogger != nil {
+				c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+			} else {
+				fmt.Println("unable to send alert")
+			}
 		}
 	}
 

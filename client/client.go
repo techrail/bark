@@ -155,12 +155,19 @@ func (c *Config) Panic(message string) {
 }
 
 func (c *Config) Alert(message string) {
-	// Todo: handle the alert webhook call here
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
 	l.LogTime = time.Now().UTC()
 	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
+
+	if c.AlertWebhook != nil {
+		err := c.AlertWebhook(l)
+		if err != nil {
+			// log error sending webhook inline to avoid infinite loop and ignoring the message
+			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send webhook")
+		}
+	}
 
 	if c.Slogger != nil {
 		c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
@@ -235,7 +242,7 @@ func (c *Config) Println(message string) {
 		case PANIC:
 			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
 		case ALERT:
-			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+			c.Slogger.Alert(message)
 		case ERROR:
 			c.Slogger.Error(message)
 		case WARNING:
@@ -267,7 +274,7 @@ func (c *Config) Printf(message string, format ...any) {
 		case PANIC:
 			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
 		case ALERT:
-			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+			c.Slogger.Alert(message)
 		case ERROR:
 			c.Slogger.Error(message)
 		case WARNING:

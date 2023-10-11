@@ -51,13 +51,13 @@ It has to be written in golang for the sake of being great at handling incoming 
 # Installation and Usage
 ## Prerequisites
 
-- Go ([Golang](https://go.dev/)) version 1.20+ (if you want to compile the project)
+- Go ([Golang](https://go.dev/)) version 1.21+ (if you want to compile the project)
 - PostgreSQL database version 12+
 
 ## Server Installation
 
 ### Install it yourself
-If you have go version 1.20 or above installed, following are the steps to set up Bark on a machine after cloning the repository:
+If you have go version 1.21 or above installed, following are the steps to set up Bark on a machine after cloning the repository:
 
 - Set the appropriate value for `BARK_DATABASE_URL` environment variable. 
 The `BARK_DATABASE_URL` should be of the format `postgres://username:password@host:port/db?sslmode=disable`. For example: `export BARK_DATABASE_URL="postgres://vaibhav:mypassword@127.0.0.1:5432/log_db?sslmode=disable"`

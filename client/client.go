@@ -4,30 +4,31 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/techrail/bark/client/barkslogger"
-	"github.com/techrail/bark/client/network"
-	"github.com/techrail/bark/client/services"
 	"io"
 	"log/slog"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/techrail/bark/client/barkslogger"
+	"github.com/techrail/bark/client/network"
+	"github.com/techrail/bark/client/services"
+
 	"github.com/techrail/bark/appRuntime"
 	"github.com/techrail/bark/constants"
 	"github.com/techrail/bark/models"
 )
 
-// type webhook func(models.BarkLog) error
+type webhook func(models.BarkLog) error
 
 type Config struct {
-	BaseUrl     string
-	ErrorLevel  string
-	ServiceName string
-	SessionName string
-	Slogger     *slog.Logger
-	BulkSend    bool
-	// AlertWebhook webhook
+	BaseUrl      string
+	ErrorLevel   string
+	ServiceName  string
+	SessionName  string
+	Slogger      *slog.Logger
+	BulkSend     bool
+	AlertWebhook webhook
 }
 
 var slogger *slog.Logger
@@ -307,6 +308,10 @@ func (c *Config) Alertf(message string, format ...any) {
 	l.MoreData = json.RawMessage("{}")
 	c.dispatchLogMessage(l)
 
+	if c.AlertWebhook != nil {
+		c.AlertWebhook(l)
+	}
+
 	if c.Slogger != nil {
 		c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
 	}
@@ -377,9 +382,9 @@ func (c *Config) Debugf(message string, format ...any) {
 	}
 }
 
-// func (c *Config) SetAlertWebhook(f webhook) {
-// 	c.AlertWebhook = f
-// }
+func (c *Config) SetAlertWebhook(f webhook) {
+	c.AlertWebhook = f
+}
 
 func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableBulkSend bool) *Config {
 	if strings.TrimSpace(sessName) == "" {

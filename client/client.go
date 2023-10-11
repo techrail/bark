@@ -425,7 +425,7 @@ func (c *Config) Debugf(message string, format ...any) {
 	}
 }
 
-func (c *Config) SetAlertWebhook(f webhook, block bool) {
+func (c *Config) SetAlertWebhook(f webhook) {
 	c.AlertWebhook = f
 }
 

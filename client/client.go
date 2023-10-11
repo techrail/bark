@@ -29,7 +29,6 @@ type Config struct {
 	Slogger      *slog.Logger
 	BulkSend     bool
 	AlertWebhook webhook
-	BlockOnAlert bool
 }
 
 var slogger *slog.Logger
@@ -155,7 +154,7 @@ func (c *Config) Panic(message string) {
 	}
 }
 
-func (c *Config) Alert(message string) {
+func (c *Config) Alert(message string, blocking bool) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
 	l.LogTime = time.Now().UTC()
@@ -163,7 +162,7 @@ func (c *Config) Alert(message string) {
 	c.dispatchLogMessage(l)
 
 	if c.AlertWebhook != nil {
-		if c.BlockOnAlert {
+		if blocking {
 			err := c.AlertWebhook(l)
 			if err != nil {
 				if c.Slogger != nil {
@@ -324,7 +323,7 @@ func (c *Config) Panicf(message string, format ...any) {
 	}
 }
 
-func (c *Config) Alertf(message string, format ...any) {
+func (c *Config) Alertf(message string, blocking bool, format ...any) {
 	message = fmt.Sprintf(message, format...)
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
@@ -333,7 +332,7 @@ func (c *Config) Alertf(message string, format ...any) {
 	c.dispatchLogMessage(l)
 
 	if c.AlertWebhook != nil {
-		if c.BlockOnAlert {
+		if blocking {
 			err := c.AlertWebhook(l)
 			if err != nil {
 				if c.Slogger != nil {
@@ -428,7 +427,6 @@ func (c *Config) Debugf(message string, format ...any) {
 
 func (c *Config) SetAlertWebhook(f webhook, block bool) {
 	c.AlertWebhook = f
-	c.BlockOnAlert = block
 }
 
 func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableBulkSend bool) *Config {

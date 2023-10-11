@@ -242,7 +242,7 @@ func (c *Config) Println(message string) {
 		case PANIC:
 			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
 		case ALERT:
-			c.Slogger.Alert(message)
+			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
 		case ERROR:
 			c.Slogger.Error(message)
 		case WARNING:
@@ -274,7 +274,7 @@ func (c *Config) Printf(message string, format ...any) {
 		case PANIC:
 			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
 		case ALERT:
-			c.Slogger.Alert(message)
+			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
 		case ERROR:
 			c.Slogger.Error(message)
 		case WARNING:

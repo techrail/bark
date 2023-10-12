@@ -62,7 +62,7 @@ If you have go version 1.21 or above installed, following are the steps to set u
 - Set the appropriate value for `BARK_DATABASE_URL` environment variable. 
 The `BARK_DATABASE_URL` should be of the format `postgres://username:password@host:port/db?sslmode=disable`. For example: `export BARK_DATABASE_URL="postgres://vaibhav:mypassword@127.0.0.1:5432/log_db?sslmode=disable"`
 - Navigate to the directory containing the `go.mod` file.
-- ~~Install the dependencies using the command `go get .`~~ The dependencies are included in the `vendor` directory in the codebase, so you don't need to install them separately.
+- The dependencies are included in the `vendor` directory in the codebase, so you don't need to install them separately.
 - To create the required tables navigate to the `_nocode/db/migrations` folder. Copy SQL commands from all the `.up.sql`, and run them in the `psql` terminal. Or you can use a migration tool like [golang-migrate](https://github.com/golang-migrate/migrate)
 - Run the bark server using the command `go run main.go`
 
@@ -73,16 +73,16 @@ You should see a text rendered on your browser saying `Hello, vaibhav!`
 ### Get it from Docker
 You can pull bark using docker as well: 
 ```
-docker pull techrail/bark:0.1
+docker pull techrail/bark:latest
 ```
 
 Or you can directly run it using: 
 ```
-docker run techrail/bark:0.1
+docker run techrail/bark:latest
 ```
 
 ### Run using Docker Compose
-Or you can use Docker Compose to run it. Once you have cloned the repository, you can run:
+Or you can use Docker Compose to run it. Once you have cloned the repository, you can `cd` to the project directory and run:
 
 ```
 docker-compose up
@@ -94,7 +94,14 @@ And it should start running. You can then visit [http://localhost:18080/hello/va
 
 # Usage in a Golang project
 
-_To be written_
+Bark is a server. You can't use the server directly in any project. However, the project has a client which can be used. There is an example in the `cmd/examples/client` directory. So you can check that out. 
+
+## You must send either the code or the message
+When you are sending a log message to the server (via REST APIs), you must send either the Code (LMID) or the message. If you supply neither, the server will not save that entry to the database.
+
+Also, you must send a valid JSON against the field `moreData` or else the call will fail. 
+
+It is more important to take care of these points when calling the endpoint for bulk insertions. When bulk insertions are required and you are calling the multiple insertion endpoint, even if one field in any of the elements being pushed has an invalid value, the entire batch of logs will be rejected (they will fail to get parsed). 
 
 # What is it NOT?
 - **It is not a replacement for Plaintext logs** - Bark should be able to write to a plaintext log file in parallel to throwing items into Postgres. In case Bark server cannot write to the database, it will emit your log messages on the server's STDOUT.

@@ -1,5 +1,7 @@
 package constants
 
+// Constants that are used mostly on the server side (but can also be used on the client side)
+
 const (
 	AppName    = "Bark"
 	AppVersion = "1.0.0"

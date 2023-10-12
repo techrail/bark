@@ -2,8 +2,8 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/techrail/bark/typs/jsonObject"
 	"io"
 	"log/slog"
 	"os"
@@ -42,7 +42,7 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 	if len(msg) < 6 {
 		l.Message = msg
 		l.Code = constants.DefaultLogCode
-		l.LogLevel = constants.DefaultLogLevel
+		l.LogLevel = c.ErrorLevel
 		return l
 	}
 
@@ -52,7 +52,7 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 		// There is no `-` in the message.
 		l.Message = msg
 		l.Code = constants.DefaultLogCode
-		l.LogLevel = constants.DefaultLogLevel
+		l.LogLevel = c.ErrorLevel
 		return l
 	}
 
@@ -60,7 +60,7 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 		// There is no `-` in the message in any meaningful way
 		l.Message = msg
 		l.Code = constants.DefaultLogCode
-		l.LogLevel = constants.DefaultLogLevel
+		l.LogLevel = c.ErrorLevel
 		return l
 	}
 
@@ -74,7 +74,7 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 		// Improperly formatted message
 		l.Message = msg
 		l.Code = constants.DefaultLogCode
-		l.LogLevel = constants.DefaultLogLevel
+		l.LogLevel = c.ErrorLevel
 		return l
 	}
 
@@ -83,11 +83,11 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 			// Our code field is only 16 characters wide.
 			l.Message = msg
 			l.Code = constants.DefaultLogCode
-			l.LogLevel = constants.DefaultLogLevel
+			l.LogLevel = c.ErrorLevel
 			return l
 		} else {
 			l.Code = metas[0]
-			l.LogLevel = constants.DefaultLogLevel
+			l.LogLevel = c.ErrorLevel
 			return l
 		}
 	}
@@ -100,11 +100,11 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 			// incorrectly formatted message
 			l.Message = msg
 			l.Code = constants.DefaultLogCode
-			l.LogLevel = constants.DefaultLogLevel
+			l.LogLevel = c.ErrorLevel
 			return l
 		}
 
-		l.LogLevel = getLogLevelFromCharacter(logLvl)
+		l.LogLevel = c.getLogLevelFromCharacter(logLvl)
 		l.Code = logCode
 
 		//fmt.Println("-----------------", logLvl, "<>", logCode)
@@ -113,7 +113,7 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 	return l
 }
 
-func getLogLevelFromCharacter(s string) string {
+func (c *Config) getLogLevelFromCharacter(s string) string {
 	switch strings.ToUpper(s) {
 	case "P":
 		return constants.Panic
@@ -130,7 +130,28 @@ func getLogLevelFromCharacter(s string) string {
 	case "D":
 		return constants.Debug
 	default:
-		return constants.DefaultLogLevel
+		return c.ErrorLevel
+	}
+}
+
+func (c *Config) getCharacterFromLogLevel(logLevel string) string {
+	switch logLevel {
+	case constants.Panic:
+		return "P"
+	case constants.Alert:
+		return "A"
+	case constants.Error:
+		return "E"
+	case constants.Warning:
+		return "W"
+	case constants.Notice:
+		return "N"
+	case constants.Info:
+		return "I"
+	case constants.Debug:
+		return "D"
+	default:
+		return "I"
 	}
 }
 
@@ -146,7 +167,7 @@ func (c *Config) Panic(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Panic
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -158,7 +179,7 @@ func (c *Config) Alert(message string, blocking bool) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.AlertWebhook != nil {
@@ -194,7 +215,7 @@ func (c *Config) Error(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Error
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -205,7 +226,7 @@ func (c *Config) Warn(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Warning
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -216,7 +237,7 @@ func (c *Config) Notice(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Notice
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -227,7 +248,7 @@ func (c *Config) Info(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Info
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -239,7 +260,7 @@ func (c *Config) Debug(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Debug
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -247,10 +268,90 @@ func (c *Config) Debug(message string) {
 	}
 }
 
+func (c *Config) Default(message string) {
+	l := c.parseMessage(message)
+	l.LogTime = time.Now().UTC()
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
+	c.dispatchLogMessage(l)
+
+	if c.Slogger != nil {
+		switch l.LogLevel {
+		case PANIC:
+			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+		case ALERT:
+			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+		case ERROR:
+			c.Slogger.Error(message)
+		case WARNING:
+			c.Slogger.Warn(message)
+		case NOTICE:
+			c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+		case DEBUG:
+			c.Slogger.Debug(message)
+		case INFO:
+			fallthrough
+		default:
+			c.Slogger.Info(message)
+		}
+	}
+}
+
+func (c *Config) Raw(rawLog RawLog, returnError bool) error {
+	// Try to parse the more data field
+	moreData, err := jsonObject.ToJsonObject(rawLog.MoreData)
+	if err != nil {
+		// Cannot convert the contents of the MoreData field to JSON
+		if returnError {
+			return fmt.Errorf("E#1LSV6K - Could not parse moreData field as valid json")
+		} else {
+			// We will save the error
+			moreData = jsonObject.EmptyNotNullJsonObject()
+			_ = moreData.SetNewTopLevelElement(constants.MoreDataClientParseErrorMessage, err.Error())
+			return nil
+		}
+	}
+
+	l := models.BarkLog{
+		LogTime:     rawLog.LogTime,
+		LogLevel:    rawLog.LogLevel,
+		ServiceName: rawLog.ServiceName,
+		SessionName: rawLog.SessionName,
+		Code:        rawLog.Code,
+		Message:     rawLog.Message,
+		MoreData:    moreData,
+	}
+
+	c.dispatchLogMessage(l)
+
+	message := fmt.Sprintf("%v#%v - %v", c.getCharacterFromLogLevel(l.LogLevel), l.Code, l.Message)
+
+	if c.Slogger != nil {
+		switch l.LogLevel {
+		case PANIC:
+			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+		case ALERT:
+			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+		case ERROR:
+			c.Slogger.Error(message)
+		case WARNING:
+			c.Slogger.Warn(message)
+		case NOTICE:
+			c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+		case DEBUG:
+			c.Slogger.Debug(message)
+		case INFO:
+			fallthrough
+		default:
+			c.Slogger.Info(message)
+		}
+	}
+	return nil
+}
+
 func (c *Config) Println(message string) {
 	l := c.parseMessage(message)
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -282,7 +383,7 @@ func (c *Config) Printf(message string, format ...any) {
 	msg := fmt.Sprintf(message, format...)
 	l := c.parseMessage(msg)
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -315,7 +416,7 @@ func (c *Config) Panicf(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Panic
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -328,7 +429,7 @@ func (c *Config) Alertf(message string, blocking bool, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.AlertWebhook != nil {
@@ -365,7 +466,7 @@ func (c *Config) Errorf(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Error
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -378,7 +479,7 @@ func (c *Config) Warnf(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Warning
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -391,7 +492,7 @@ func (c *Config) Noticef(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Notice
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -404,7 +505,7 @@ func (c *Config) Infof(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Info
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -417,7 +518,7 @@ func (c *Config) Debugf(message string, format ...any) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Debug
 	l.LogTime = time.Now().UTC()
-	l.MoreData = json.RawMessage("{}")
+	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -430,14 +531,19 @@ func (c *Config) SetAlertWebhook(f webhook) {
 }
 
 func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableBulkSend bool) *Config {
-	if strings.TrimSpace(sessName) == "" {
-		sessName = appRuntime.SessionName
-		fmt.Printf("L#1L3WBF - Using %v as Session Name", sessName)
+	if !isValid(errLevel) {
+		fmt.Printf("L#1LPYG2 - %v is not an acceptable log level. %v will be used as the default log level", errLevel, constants.DefaultLogLevel)
+		errLevel = INFO
 	}
 
-	if !isValid(errLevel) {
-		fmt.Printf("L#1LPYG2 - %v is not an acceptable log level. INFO will be used as the default log level", errLevel)
-		errLevel = INFO
+	if strings.TrimSpace(svcName) == "" {
+		sessName = constants.DefaultLogServiceName
+		fmt.Printf("L#1L3WBF - Blank service name supplied. Using %v as Session Name", sessName)
+	}
+
+	if strings.TrimSpace(sessName) == "" {
+		sessName = appRuntime.SessionName
+		fmt.Printf("L#1L3WBF - Blank session name supplied. Using %v as Session Name", sessName)
 	}
 
 	if enableBulkSend {

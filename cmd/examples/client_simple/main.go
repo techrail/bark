@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/techrail/bark/client"
 	"os"
-	"time"
 )
 
 func main() {
@@ -13,7 +12,8 @@ func main() {
 		fmt.Println("This")
 		return
 	}
-	log := client.NewClient("http://127.0.0.1:8080/", "INFO", "brktest", "local session", true, false)
+	log := client.NewClient("http://127.0.0.1:8080/", "INFO", "brktest", "local session", true, true)
+
 	log.Panic("Panic message")
 	log.Alert("Alert message", true)
 	log.Error("Error message")
@@ -64,7 +64,7 @@ func main() {
 
 	log.Println("1LPWC7 - Default message")
 
-	time.Sleep(1 * time.Second)
+	//time.Sleep(1 * time.Second)
 	// --------------------------------
 	//time.Sleep(1 * time.Second)
 }

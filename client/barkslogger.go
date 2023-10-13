@@ -1,5 +1,5 @@
 // Package barkslogger manages everything related slog handler that's to be used by bark client.
-package barkslogger
+package client
 
 import (
 	"context"

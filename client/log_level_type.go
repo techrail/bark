@@ -1,5 +1,7 @@
 package client
 
+import "sync"
+
 const (
 	PANIC   = "PANIC"
 	ALERT   = "ALERT"
@@ -30,3 +32,5 @@ func isValid(lvl string) bool {
 		return false
 	}
 }
+
+var Wg sync.WaitGroup

@@ -2,8 +2,6 @@ package tests
 
 import (
 	"github.com/techrail/bark/client"
-	"github.com/techrail/bark/client/barkslogger"
-	"github.com/techrail/bark/client/network"
 	"github.com/techrail/bark/constants"
 	"github.com/techrail/bark/models"
 	"log/slog"
@@ -31,7 +29,7 @@ func TestClientWithCustomSlogHandler(t *testing.T) {
 
 	file, _ := os.Create("../tmp/random.txt")
 
-	logClient.WithSlogHandler(slog.NewJSONHandler(file, barkslogger.Options()))
+	logClient.WithSlogHandler(slog.NewJSONHandler(file, client.Options()))
 
 	sendDummyLogsThroughAllMethods(logClient)
 }
@@ -42,7 +40,7 @@ func TestPostLogArray(t *testing.T) {
 	logs[0] = models.BarkLog{Message: "someMessage"}
 	logs[1] = models.BarkLog{Message: "someMessage"}
 	logs[2] = models.BarkLog{Message: "someMessage"}
-	_, _ = network.PostLogArray("http://localhost:8080/"+constants.BatchInsertUrl, logs)
+	_, _ = client.PostLogArray("http://localhost:8080/"+constants.BatchInsertUrl, logs)
 }
 
 func sendDummyLogsThroughAllMethods(logClient *client.Config) {
@@ -51,7 +49,7 @@ func sendDummyLogsThroughAllMethods(logClient *client.Config) {
 	logClient.Info("Info Message!")
 	logClient.Debug("Debug Message!")
 	logClient.Panic("Panic Message!")
-	logClient.Alert("Alert Message!")
+	logClient.Alert("Alert Message!", true)
 	logClient.Notice("Notice Message!")
 
 	// Print with formatter
@@ -59,6 +57,6 @@ func sendDummyLogsThroughAllMethods(logClient *client.Config) {
 	logClient.Infof("%s Message!", "Info")
 	logClient.Debugf("%s Message!", "Debug")
 	logClient.Panicf("%s Message!", "Panic")
-	logClient.Alertf("%s Message!", "Alert")
+	logClient.Alertf("%s Message!", true, "Alert")
 	logClient.Noticef("%s Message!", "Notice")
 }

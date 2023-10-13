@@ -33,3 +33,11 @@ const (
 	SingleInsertUrl = "insertSingle"
 	BatchInsertUrl  = "insertMultiple"
 )
+
+const (
+	ServerLogInsertionBatchSizeLarge  = 5_000
+	ServerLogInsertionBatchSizeMedium = 1_000
+	ServerLogInsertionBatchSizeSmall  = 100
+)
+
+const ServerLogInsertionChannelCapacity = 500_000

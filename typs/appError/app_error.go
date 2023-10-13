@@ -1,7 +1,7 @@
 package appError
 
 import (
-	`fmt`
+	"fmt"
 )
 
 type AppErr struct {
@@ -12,4 +12,8 @@ type AppErr struct {
 
 func (ae AppErr) Error() string {
 	return fmt.Sprintf("E#1L3TGS - %v, %v, %v", ae.Severity, ae.Code, ae.Msg)
+}
+
+func (ae AppErr) String() string {
+	return ae.Error()
 }

@@ -10,10 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/techrail/bark/client/barkslogger"
-	"github.com/techrail/bark/client/network"
-	"github.com/techrail/bark/client/services"
-
 	"github.com/techrail/bark/appRuntime"
 	"github.com/techrail/bark/constants"
 	"github.com/techrail/bark/models"
@@ -26,12 +22,10 @@ type Config struct {
 	ErrorLevel   string
 	ServiceName  string
 	SessionName  string
-	Slogger      *slog.Logger
 	BulkSend     bool
+	Slogger      *slog.Logger
 	AlertWebhook webhook
 }
-
-var slogger *slog.Logger
 
 func (c *Config) parseMessage(msg string) models.BarkLog {
 	l := models.BarkLog{
@@ -157,9 +151,16 @@ func (c *Config) getCharacterFromLogLevel(logLevel string) string {
 
 func (c *Config) dispatchLogMessage(l models.BarkLog) {
 	if c.BulkSend {
-		go services.InsertSingleRequest(l)
+		go InsertSingleRequest(l)
 	} else {
-		go network.PostLog(c.BaseUrl+constants.SingleInsertUrl, l)
+		Wg.Add(1)
+		go func() {
+			defer Wg.Done()
+			_, err := PostLog(c.BaseUrl+constants.SingleInsertUrl, l)
+			if err.Severity == 1 {
+				fmt.Println(err.Msg)
+			}
+		}()
 	}
 }
 
@@ -171,7 +172,7 @@ func (c *Config) Panic(message string) {
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
-		c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+		c.Slogger.Log(context.Background(), LvlPanic, message)
 	}
 }
 
@@ -187,7 +188,7 @@ func (c *Config) Alert(message string, blocking bool) {
 			err := c.AlertWebhook(l)
 			if err != nil {
 				if c.Slogger != nil {
-					c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+					c.Slogger.Log(context.Background(), LvlAlert, "unable to send alert")
 				} else {
 					fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
 				}
@@ -197,7 +198,7 @@ func (c *Config) Alert(message string, blocking bool) {
 				err := c.AlertWebhook(l)
 				if err != nil {
 					if c.Slogger != nil {
-						c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+						c.Slogger.Log(context.Background(), LvlAlert, "unable to send alert")
 					} else {
 						fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
 					}
@@ -207,7 +208,7 @@ func (c *Config) Alert(message string, blocking bool) {
 	}
 
 	if c.Slogger != nil {
-		c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+		c.Slogger.Log(context.Background(), LvlAlert, message)
 	}
 }
 
@@ -241,7 +242,7 @@ func (c *Config) Notice(message string) {
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
-		c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+		c.Slogger.Log(context.Background(), LvlNotice, message)
 	}
 }
 func (c *Config) Info(message string) {
@@ -277,15 +278,15 @@ func (c *Config) Default(message string) {
 	if c.Slogger != nil {
 		switch l.LogLevel {
 		case PANIC:
-			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+			c.Slogger.Log(context.Background(), LvlPanic, message)
 		case ALERT:
-			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+			c.Slogger.Log(context.Background(), LvlAlert, message)
 		case ERROR:
 			c.Slogger.Error(message)
 		case WARNING:
 			c.Slogger.Warn(message)
 		case NOTICE:
-			c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+			c.Slogger.Log(context.Background(), LvlNotice, message)
 		case DEBUG:
 			c.Slogger.Debug(message)
 		case INFO:
@@ -328,15 +329,15 @@ func (c *Config) Raw(rawLog RawLog, returnError bool) error {
 	if c.Slogger != nil {
 		switch l.LogLevel {
 		case PANIC:
-			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+			c.Slogger.Log(context.Background(), LvlPanic, message)
 		case ALERT:
-			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+			c.Slogger.Log(context.Background(), LvlAlert, message)
 		case ERROR:
 			c.Slogger.Error(message)
 		case WARNING:
 			c.Slogger.Warn(message)
 		case NOTICE:
-			c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+			c.Slogger.Log(context.Background(), LvlNotice, message)
 		case DEBUG:
 			c.Slogger.Debug(message)
 		case INFO:
@@ -357,15 +358,15 @@ func (c *Config) Println(message string) {
 	if c.Slogger != nil {
 		switch l.LogLevel {
 		case PANIC:
-			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+			c.Slogger.Log(context.Background(), LvlPanic, message)
 		case ALERT:
-			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+			c.Slogger.Log(context.Background(), LvlAlert, message)
 		case ERROR:
 			c.Slogger.Error(message)
 		case WARNING:
 			c.Slogger.Warn(message)
 		case NOTICE:
-			c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+			c.Slogger.Log(context.Background(), LvlNotice, message)
 		case DEBUG:
 			c.Slogger.Debug(message)
 		case INFO:
@@ -389,21 +390,21 @@ func (c *Config) Printf(message string, format ...any) {
 	if c.Slogger != nil {
 		switch l.LogLevel {
 		case PANIC:
-			c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+			c.Slogger.Log(context.Background(), LvlPanic, msg)
 		case ALERT:
-			c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+			c.Slogger.Log(context.Background(), LvlAlert, msg)
 		case ERROR:
-			c.Slogger.Error(message)
+			c.Slogger.Error(msg)
 		case WARNING:
-			c.Slogger.Warn(message)
+			c.Slogger.Warn(msg)
 		case NOTICE:
-			c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+			c.Slogger.Log(context.Background(), LvlNotice, msg)
 		case DEBUG:
-			c.Slogger.Debug(message)
+			c.Slogger.Debug(msg)
 		case INFO:
 			fallthrough
 		default:
-			c.Slogger.Info(message)
+			c.Slogger.Info(msg)
 		}
 	} else {
 		// In addition to sending the log to server, we should also print it!
@@ -420,7 +421,7 @@ func (c *Config) Panicf(message string, format ...any) {
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
-		c.Slogger.Log(context.Background(), barkslogger.LvlPanic, message)
+		c.Slogger.Log(context.Background(), LvlPanic, message)
 	}
 }
 
@@ -437,7 +438,7 @@ func (c *Config) Alertf(message string, blocking bool, format ...any) {
 			err := c.AlertWebhook(l)
 			if err != nil {
 				if c.Slogger != nil {
-					c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+					c.Slogger.Log(context.Background(), LvlAlert, "unable to send alert")
 				} else {
 					fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
 				}
@@ -447,7 +448,7 @@ func (c *Config) Alertf(message string, blocking bool, format ...any) {
 				err := c.AlertWebhook(l)
 				if err != nil {
 					if c.Slogger != nil {
-						c.Slogger.Log(context.Background(), barkslogger.LvlAlert, "unable to send alert")
+						c.Slogger.Log(context.Background(), LvlAlert, "unable to send alert")
 					} else {
 						fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
 					}
@@ -457,7 +458,7 @@ func (c *Config) Alertf(message string, blocking bool, format ...any) {
 	}
 
 	if c.Slogger != nil {
-		c.Slogger.Log(context.Background(), barkslogger.LvlAlert, message)
+		c.Slogger.Log(context.Background(), LvlAlert, message)
 	}
 }
 
@@ -496,7 +497,7 @@ func (c *Config) Noticef(message string, format ...any) {
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
-		c.Slogger.Log(context.Background(), barkslogger.LvlNotice, message)
+		c.Slogger.Log(context.Background(), LvlNotice, message)
 	}
 }
 
@@ -546,12 +547,16 @@ func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableB
 		fmt.Printf("L#1L3WBF - Blank session name supplied. Using %v as Session Name", sessName)
 	}
 
+	//Wg.Add(1)
+
 	if enableBulkSend {
-		go services.StartSendingLogs(url)
+		go keepSendingLogs(url)
 	}
 
+	var slogger *slog.Logger
+
 	if enableSlog {
-		slogger = barkslogger.New(os.Stdout)
+		slogger = New(os.Stdout)
 	} else {
 		slogger = nil
 	}
@@ -568,10 +573,14 @@ func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableB
 
 // WithCustomOut allows users to set output to custom writer instead of the default standard output
 func (c *Config) WithCustomOut(out io.Writer) {
-	c.Slogger = barkslogger.New(out)
+	c.Slogger = New(out)
 }
 
 // WithSlogHandler allows users to specify their own slog handler
 func (c *Config) WithSlogHandler(handler slog.Handler) {
-	c.Slogger = barkslogger.NewWithCustomHandler(handler)
+	c.Slogger = NewWithCustomHandler(handler)
+}
+
+func (c *Config) WaitAndEnd() {
+	Wg.Wait()
 }

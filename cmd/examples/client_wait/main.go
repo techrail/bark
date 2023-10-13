@@ -14,9 +14,9 @@ func main() {
 	}
 	log := client.NewClient("http://127.0.0.1:8080/", "INFO", "brktest", "local session", false, true)
 
-	//for i := 0; i < 50_000; i++ {
-	//	log.Printf("1LTOU4 - Default message - %v", i)
-	//}
+	for i := 0; i < 5_000_000; i++ {
+		log.Printf("1LTOU4 - Default message - %v", i)
+	}
 
 	log.Panic("Panic message")
 	log.Alert("Alert message2", true)

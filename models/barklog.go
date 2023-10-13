@@ -30,6 +30,7 @@ func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 	if b.LogTime.IsZero() {
 		b.LogTime = time.Now().UTC()
 	}
+
 	if strings.TrimSpace(b.LogLevel) == "" {
 		b.LogLevel = constants.DefaultLogLevel
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/techrail/bark/client"
 	"os"
-	"time"
 )
 
 func main() {
@@ -65,7 +64,7 @@ func main() {
 
 	log.Println("1LPWC7 - Default message")
 
-	time.Sleep(1 * time.Second)
+	//time.Sleep(1 * time.Second)
 	// --------------------------------
 	//time.Sleep(1 * time.Second)
 }

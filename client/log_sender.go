@@ -38,7 +38,7 @@ func keepSendingLogs(serverUrl string) {
 					return
 				}
 
-				fmt.Println("L#1LUE2H - Large Batch sent at ", time.Now().Format("2006-01-02 15:04:05"))
+				fmt.Println("L#1LVP5D - Large Batch sent at ", time.Now().Format("2006-01-02 15:04:05"))
 			}()
 
 		} else if clientChannelLength >= logBatchSizeMedium && clientChannelLength < logBatchSizeLarge {
@@ -89,7 +89,7 @@ func keepSendingLogs(serverUrl string) {
 					return
 				}
 
-				fmt.Println("L#1LUE2H - Medium Batch sent at ", time.Now().Format("2006-01-02 15:04:05"))
+				fmt.Println("L#1LVP4K - Small Batch sent at ", time.Now().Format("2006-01-02 15:04:05"))
 			}()
 		} else if clientChannelLength > 0 && clientChannelLength < logBatchSizeSmall {
 			// Commit one at a time

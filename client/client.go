@@ -171,7 +171,7 @@ func (c *Config) dispatchLogMessage(l models.BarkLog) {
 	}
 }
 
-// Panic sends a LvlPanic log to server and prints the log is slogger is enabled.
+// Panic sends a LvlPanic log to server and prints the log if slog is enabled.
 func (c *Config) Panic(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Panic
@@ -184,7 +184,7 @@ func (c *Config) Panic(message string) {
 	}
 }
 
-// Alert sends a LvlAlert log to server and prints the log is slogger is enabled.
+// Alert sends a LvlAlert log to server and prints the log if slog is enabled.
 // This also initiates a AlertWebhook call.
 func (c *Config) Alert(message string, blocking bool) {
 	l := c.parseMessage(message)

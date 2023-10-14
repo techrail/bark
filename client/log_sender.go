@@ -11,6 +11,7 @@ const logBatchSizeSmall = 10
 const logBatchSizeMedium = 100
 const logBatchSizeLarge = 500
 
+// keepSendingLogs is responsible for sending logs to server.
 func keepSendingLogs(serverUrl string) {
 	clientChannelLength := 0
 	for {

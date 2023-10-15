@@ -17,6 +17,9 @@ func init() {
 }
 
 // StartWritingLogs is a go routine to check channel length and commit to DB
+// The routine decides whether a batch or single insert DB call of the logs is needed to be made.
+// Further bifurcation of the batch sizes is done based on the incoming traffic and LogChannel capacity.
+// If appRuntime.ShutdownRequested is set to true, the routine will send a batch of all the remaining logs in the LogChannel to the DB.
 func StartWritingLogs() {
 	logChannelLength := 0
 	for {

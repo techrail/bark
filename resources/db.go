@@ -15,6 +15,7 @@ type BarkPostgresDb struct {
 
 var BarkDb *BarkPostgresDb
 
+// InitDb : InitDB returns error (if any) encountered while trying to establish a connection to the postgres DB instance.
 func InitDb() error {
 	// Connect to Postgres DB instance
 	var err error
@@ -27,6 +28,8 @@ func InitDb() error {
 	return nil
 }
 
+// OpenDb : OpenDB returns a pointer to the `BarkPostgresDb` object.
+// BarkPostgresDb struct wraps a pointer to pgx connection pool object.
 func OpenDb() (*BarkPostgresDb, error) {
 	connPool, err := pgxpool.NewWithConfig(context.Background(), Config())
 	if err != nil {
@@ -36,6 +39,7 @@ func OpenDb() (*BarkPostgresDb, error) {
 	return &BarkPostgresDb{Client: connPool}, nil
 }
 
+// CloseDb closes the connection to the DB.
 func (d *BarkPostgresDb) CloseDb() {
 	d.Client.Close()
 }

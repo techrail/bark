@@ -10,6 +10,11 @@ import (
 	"github.com/techrail/bark/services/ingestion"
 )
 
+// SendSingleToChannel is tasked with handling all the single log insertion requests.
+// It will simply send a response code 503 (service unavailable) if server shut down has already been requested.
+// Response code 400 will be returned in case request body is empty.
+// It will unmarshal the request body and compare the structure with structure of BarkLog struct.
+// Finally, it will spawn a go routine to send the log to LogChannel and will respond with 200 to the client.
 func SendSingleToChannel(ctx *fasthttp.RequestCtx) {
 	if appRuntime.ShutdownRequested.Load() == true {
 		ctx.SetStatusCode(fasthttp.StatusServiceUnavailable)
@@ -32,6 +37,11 @@ func SendSingleToChannel(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(fasthttp.StatusOK)
 }
 
+// SendMultipleToChannel is tasked with handling all the multiple log insertion requests.
+// It will simply send a response code 503 (service unavailable) if server shut down has already been requested.
+// Response code 400 will be returned in case request body is empty.
+// It will unmarshal the request body and compare the structure with structure of BarkLog struct slice.
+// Finally, it will spawn a go routine to send the logs to LogChannel and will respond with 200 to the client.
 func SendMultipleToChannel(ctx *fasthttp.RequestCtx) {
 	if appRuntime.ShutdownRequested.Load() == true {
 		ctx.SetStatusCode(fasthttp.StatusServiceUnavailable)
@@ -54,6 +64,7 @@ func SendMultipleToChannel(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(fasthttp.StatusOK)
 }
 
+// ShutdownService will set the value of global variable `ShutdownRequested` to true.
 func ShutdownService(ctx *fasthttp.RequestCtx) {
 	appRuntime.ShutdownRequested.Store(true)
 }

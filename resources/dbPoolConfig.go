@@ -13,6 +13,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// Config retrieves the postgres DB connection url from environment variable named `BARK_DATABASE_URL`.
+// It then parses the connection url and checks for empty and invalid urls, if found, it logs the error and connection is not made.
+// If it passes the checks, the connection is established and function returns object of pgxpool config.
+
 func Config() *pgxpool.Config {
 	const defaultMaxConns = int32(20)
 	const defaultMinConns = int32(5)

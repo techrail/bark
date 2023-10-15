@@ -45,7 +45,7 @@ func main() {
 	r.POST("/insertMultiple", controllers.SendMultipleToChannel)
 
 	// This endpoint is responsible to initiate server shut down, following which Bark server will not process any new incoming requests.
-	// It will, however, shut down after it has completely sent all the logs received up till that point of time.
+	// It will, however, shut down after it has completely saved all the logs received up till that point to the database.
 	r.POST("/shutdownServiceAsap", controllers.ShutdownService)
 
 	//InitDB attempts to make a connection to the postgres DB instance using the environment variable value set for `BARK_DATABASE_URL`.

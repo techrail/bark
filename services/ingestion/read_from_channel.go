@@ -8,8 +8,8 @@ import (
 	"github.com/techrail/bark/models"
 )
 
-// InsertSingle and InsertMultiple functions have a common functionality - pushing the logs into the LogChannel.
-// The channel capacities are checked beforehand. In case, the channels are full, that message is conveyed.
+// InsertSingle function pushes a single log entry into the LogChannel.
+// The channel capacity is checked beforehand. In case, the channel is full, that message is conveyed.
 // Each log entry's values are validated and then sent to the LogChannel.
 func InsertSingle(logEntry models.BarkLog) {
 	if len(channels.LogChannel) > constants.ServerLogInsertionChannelCapacity-1 {
@@ -23,6 +23,9 @@ func InsertSingle(logEntry models.BarkLog) {
 	}
 }
 
+// InsertMultiple function pushes a batch of logs into the LogChannel.
+// The channel capacity is checked beforehand. In case, the channel is full, that message is conveyed.
+// Each log entry's values are validated and then sent to the LogChannel.
 func InsertMultiple(logEntries []models.BarkLog) {
 	var err error
 	for _, logEntry := range logEntries {

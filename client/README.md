@@ -39,19 +39,47 @@ barkClient.Default("Println message")
 The options that are used for initializing the client are as follows:
 
 - **bark_server_url**: This is the URL of a running bark server. It must end in `/`. For example `http://bark.example.com/` or `http://127.0.0.1:8080/`
-- **default_log_level**: When you use `Println` or `Default`, the log message is parsed (rules for prasing are described [here](https://techrail.in/projects/bark/log-string-parsing-in-bark)) and if it does not contain any indication for what the log level is, then the value supplied in this field is used as the log level for sent log message.
+- **default_log_level**: When you use `Println` or `Default`, the log message is parsed (rules for prasing are described [here](../_nocode/docs/log-string-parsing-in-bark.md)) and if it does not contain any indication for what the log level is, then the value supplied in this field is used as the log level for sent log message. When using dedicated methods for error levels (e.g. `Panic`, `Error` etc.), the parsed error level is overwritten.
 - **default_service_name**: This is the name of the service which is sending the log - so it has to be the name of the program or service which is calling it. In case a blank string is sent, the value against `constants.DefaultLogServiceName` (currently set to `def_svc`) is used.
 - **session_name**: This is the name of the calling app's session. This value is supposed to indicate which instance among possibly multiple instances of a service sent a log message. For example, in case of the service being deployed within Kubernetes, it might indicate the service's pod's name. If the value is sent as a blank string, client will try to use the machine's hostname. If it fails to fetch the hostname, a random string will be used instead. 
 - **enable_slog**: This enables [slog](https://go.dev/blog/slog) for the client. When this option is enabled, all logs in addition to being sent to the bark server is also printed on STDOUT of the service.
 - **enable_bulk_dispatch**: Setting this to true would enable the client to push all the requests being received in a channel and start using it. It improves the overall performance of the client sending log entries to the server.
 
+### Simplest usecase (without any server)
+The simplest usecase of any logging library is to print to STDOUT. While the primary usecase of bark is to be able to dispatch log messages to a remote server, when we start off with a new project, we often just want to start logging things to STDOUT. Maybe even later, that is how we want to use logs. For such usecases, the client library offers `NewSloggerClient` which uses the built in [slog](https://go.dev/blog/slog) package in go (version 1.21+) to log your messages to STDOUT with levels. Example: 
+
+```go
+log := client.NewSloggerClient("INFO")
+
+log.Panic("Panic message")
+log.Alert("Alert message", true)
+log.Error("Error message")
+log.Warn("Warn message")
+log.Notice("Notice message")
+log.Info("Info message")
+log.Debug("Debug message")
+log.Println("Println message")
+```
+The above piece of code will end up printing something like the following (the dates in the beginning of each line will vary): 
+
+```
+2023/10/15 21:57:41 PANIC Panic message
+2023/10/15 21:57:41 ALERT Alert message
+2023/10/15 21:57:41 ERROR Error message
+2023/10/15 21:57:41 WARN Warn message
+2023/10/15 21:57:41 NOTICE Notice message
+2023/10/15 21:57:41 INFO Info message
+2023/10/15 21:57:41 DEBUG Debug message
+2023/10/15 21:57:41 INFO Println message
+```
+
 ## Printing logs via standard output
 
-Bark client is a tool that allows you to send logs to bark server and print them to standard output simultaneously. You can use any of the log methods available in bark client to do this.
+Bark client, as shown above, is capable of sending logs to a server as well as printing them to the standard output as well. It can also do both of those things simultaneously. The architecture in very simple representation looks like this: 
 
 ![barkslogger.svg](../_nocode/images/barkslogger.svg)
 
-If you want to print the logs to a different output, such as a file, you can use the `WithCustomOut` method. This method takes an `io.Writer` parameter and sets it as the output writer for the bark client. For example, if you want to print the logs to a file named random.txt, you can do this:
+You can use any of the log methods available in bark client to do this. If you want to print the logs to a different output, such as a file, you can use the `WithCustomOut` method. This method takes an `io.Writer` parameter and sets it as the output writer for the bark client. For example, if you want to print the logs to a file named random.txt, you can do this:
 
 ```go
 barkClient := client.NewClient("<bark_server_url>", "<custom_log_level>", "<service_name>", "<session_name>", 

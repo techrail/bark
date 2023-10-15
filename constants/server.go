@@ -30,6 +30,10 @@ const (
 )
 
 const (
+	DisabledServerUrl = "http://0.0.0.0/"
+)
+
+const (
 	SingleInsertUrl = "insertSingle"
 	BatchInsertUrl  = "insertMultiple"
 )

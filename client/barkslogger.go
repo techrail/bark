@@ -112,8 +112,8 @@ func Options() *slog.HandlerOptions {
 	}
 }
 
-// New creates a new logger of type slog.Logger.
-func New(writer io.Writer) *slog.Logger {
+// newSlogger creates a new logger of type slog.Logger.
+func newSlogger(writer io.Writer) *slog.Logger {
 	handler := NewBarkSlogHandler(writer)
 	return slog.New(handler)
 }

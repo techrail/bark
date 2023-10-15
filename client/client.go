@@ -18,13 +18,14 @@ import (
 type webhook func(models.BarkLog) error
 
 type Config struct {
-	BaseUrl      string
-	ErrorLevel   string
-	ServiceName  string
-	SessionName  string
-	BulkSend     bool
-	Slogger      *slog.Logger
-	AlertWebhook webhook
+	serverDisabled bool
+	BaseUrl        string
+	ErrorLevel     string
+	ServiceName    string
+	SessionName    string
+	BulkSend       bool
+	Slogger        *slog.Logger
+	AlertWebhook   webhook
 }
 
 // parseMessage extracts LMID (Log Message Identifier) if a valid LMID exists in message string otherwise.
@@ -157,6 +158,11 @@ func (c *Config) getCharacterFromLogLevel(logLevel string) string {
 // otherwise if bulk send is disabled it creates a network request to send the log,
 // in a new goroutine.
 func (c *Config) dispatchLogMessage(l models.BarkLog) {
+	if c.serverDisabled {
+		// Server is disabled. Return
+		return
+	}
+
 	if c.BulkSend {
 		go InsertSingleRequest(l)
 	} else {
@@ -452,9 +458,31 @@ func (c *Config) Debugf(message string, format ...any) {
 	c.Debug(message)
 }
 
-// SetAlertWebhook sets a webhook to be used by Config.Alert method
+// SetAlertWebhook sets the function f to be used as a webhook to be used by Config.Alert method
 func (c *Config) SetAlertWebhook(f webhook) {
 	c.AlertWebhook = f
+}
+
+// NewSloggerClient creates and returns a new Config object which can be used for fully client-side logging only
+// It accepts one single parameter - the default log level. The config returned cannot be used to send logs to any
+// remote server. This can be used for projects that do not aim to send logs to a remote service yet!
+func NewSloggerClient(defaultLogLevel string) *Config {
+	if !isValid(defaultLogLevel) {
+		fmt.Printf("L#1LZAY0 - %v is not an acceptable log level. %v will be used as the default log level", defaultLogLevel, constants.DefaultLogLevel)
+		defaultLogLevel = constants.DefaultLogLevel
+	}
+
+	slogger := newSlogger(os.Stdout)
+
+	return &Config{
+		serverDisabled: true,
+		BaseUrl:        constants.DisabledServerUrl,
+		ErrorLevel:     defaultLogLevel,
+		ServiceName:    "",
+		SessionName:    "",
+		Slogger:        slogger,
+		BulkSend:       false,
+	}
 }
 
 // NewClient creates and returns a new Config object with the given parameters.
@@ -462,9 +490,9 @@ func (c *Config) SetAlertWebhook(f webhook) {
 // Config object is the main point interactions between user and bark client library.
 //
 // The url parameter is the base URL of the remote bark server where the logs will be sent.
-// It must be a valid URL string.
+// It must be a valid URL string and must end in `/`
 //
-// The errLevel parameter is the error level for logging. It must be one of the constants
+// The defaultLogLvl parameter is the log level for logging. It must be one of the constants
 // defined in the constants package, such as INFO, WARN, ERROR, etc. If an invalid value
 // is given, the function will print a warning message and use INFO as the default level.
 //
@@ -484,10 +512,10 @@ func (c *Config) SetAlertWebhook(f webhook) {
 // of logs to the remote server. If true, the function will start a goroutine that periodically
 // sends all the buffered logs to the server. If false, the logs will be sent individually as
 // they are generated.
-func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableBulkSend bool) *Config {
-	if !isValid(errLevel) {
-		fmt.Printf("L#1LPYG2 - %v is not an acceptable log level. %v will be used as the default log level", errLevel, constants.DefaultLogLevel)
-		errLevel = INFO
+func NewClient(url, defaultLogLvl, svcName, sessName string, enableSlog bool, enableBulkSend bool) *Config {
+	if !isValid(defaultLogLvl) {
+		fmt.Printf("L#1LPYG2 - %v is not an acceptable log level. %v will be used as the default log level", defaultLogLvl, constants.DefaultLogLevel)
+		defaultLogLvl = constants.DefaultLogLevel
 	}
 
 	if strings.TrimSpace(svcName) == "" {
@@ -509,14 +537,14 @@ func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableB
 	var slogger *slog.Logger
 
 	if enableSlog {
-		slogger = New(os.Stdout)
+		slogger = newSlogger(os.Stdout)
 	} else {
 		slogger = nil
 	}
 
 	return &Config{
 		BaseUrl:     url,
-		ErrorLevel:  errLevel,
+		ErrorLevel:  defaultLogLvl,
 		ServiceName: svcName,
 		SessionName: sessName,
 		Slogger:     slogger,
@@ -526,7 +554,7 @@ func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableB
 
 // WithCustomOut allows users to set output to custom writer instead of the default standard output
 func (c *Config) WithCustomOut(out io.Writer) {
-	c.Slogger = New(out)
+	c.Slogger = newSlogger(out)
 }
 
 // WithSlogHandler allows users to specify their own slog handler

@@ -31,21 +31,38 @@ func Init() string {
 func main() {
 	address := Init()
 	r := router.New()
+
+	// The index endpoint displays information about the bark server.
 	r.GET("/", controllers.IndexController)
+
+	// This is a demo endpoint to ensure bark server is running which will print Hello, `name`!.
 	r.GET("/hello/{name}", Hello)
+
+	// Bark client contains the logic which decides which out of the two (single/multiple) insertion endpoints is called.
+	// This endpoint sends single log entry at a time to the DB.
 	r.POST("/insertSingle", controllers.SendSingleToChannel)
+	// This endpoint handles the batch insertion of logs to the DB.
 	r.POST("/insertMultiple", controllers.SendMultipleToChannel)
+
+	// This endpoint is responsible to initiate server shut down, following which Bark server will not process any new incoming requests.
+	// It will, however, shut down after it has completely saved all the logs received up till that point to the database.
 	r.POST("/shutdownServiceAsap", controllers.ShutdownService)
+
+	//InitDB attempts to make a connection to the postgres DB instance using the environment variable value set for `BARK_DATABASE_URL`.
 	err := resources.InitDb()
 	if err != nil {
 		log.Fatal("E#1KDZRP - " + err.Error())
 	}
 	bld := models.NewBarkLogDao()
+
+	// Sends a single log entry to the postgres DB stating Bark server has started successfully.
+	// Returns an error and halts the server boot up in case the connection acquired to the postgres DB is not proper.
 	err = bld.InsertServerStartedLog()
 	if err != nil {
 		log.Fatal("P#1LQ2YQ - Bark server start failed: " + err.Error())
 	}
 
+	// Go routine which writes logs received in the LogChannel to DB.
 	go dbLogWriter.StartWritingLogs()
 	log.Fatal(fasthttp.ListenAndServe(address, r.Handler))
 

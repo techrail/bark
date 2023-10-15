@@ -1,4 +1,4 @@
-// Package barkslogger manages everything related slog handler that's to be used by bark client.
+// This file manages everything related slog handler that's to be used by bark client.
 package client
 
 import (
@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"log/slog"
-	"os"
 )
 
 // Constants for custom log levels in bark.
@@ -26,14 +25,23 @@ type BarkSlogHandler struct {
 	log *log.Logger
 }
 
+// WithAttrs method is an implementation of slog.Handler interface's method for BarkSlogHandler
+// This allows a set of attributes to be added to slog package,
+// but right now we're not supporting additional slog attributes.
+// This method returns the handler as is for now.
 func (handle *BarkSlogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return slog.NewJSONHandler(os.Stdout, nil)
+	return handle
 }
 
+// WithGroup method is an implementation of slog.Handler interface's method for BarkSlogHandler
+// This allows a group to be added to slog package, but right now we're not supporting slog groups.
+// This method returns the handler as is for now.
 func (handle *BarkSlogHandler) WithGroup(name string) slog.Handler {
 	return handle
 }
 
+// Enabled method is an implementation of slog.Handler interface's method for BarkSlogHandler
+// This method defines which log levels are supported.
 func (handle *BarkSlogHandler) Enabled(_ context.Context, level slog.Level) bool {
 	if level == LvlPanic || level == LvlAlert || level == LvlError ||
 		level == LvlWarning || level == LvlNotice || level == LvlInfo ||

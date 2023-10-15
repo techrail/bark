@@ -12,6 +12,7 @@ const (
 	DEBUG   = "DEBUG"
 )
 
+// isValid returns true of the lvl string is a valid log level.
 func isValid(lvl string) bool {
 	switch lvl {
 	case PANIC:

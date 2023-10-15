@@ -9,8 +9,7 @@ import (
 	"github.com/techrail/bark/typs/appError"
 )
 
-// Todo: Write Issue: Bark isn't throwing an error when insertion fails.
-
+// post makes a HTTP post request to url with the given payload.
 func post(url, payload string) (string, appError.AppErr) {
 	var appErr appError.AppErr
 	req := fasthttp.AcquireRequest()
@@ -41,16 +40,19 @@ func post(url, payload string) (string, appError.AppErr) {
 	return string(bodyBytes), appErr
 }
 
+// PostLog makes a HTTP post request to bark server url and send BarkLog as payload.
 func PostLog(url string, log models.BarkLog) (string, appError.AppErr) {
 	logRawJson, _ := json.Marshal(log)
 	return post(url, string(logRawJson))
 }
 
+// PostLogArray makes a HTTP post request to bark server url and sends an array of BarkLog as payload.
 func PostLogArray(url string, log []models.BarkLog) (string, appError.AppErr) {
 	logRawJson, _ := json.Marshal(log)
 	return post(url, string(logRawJson))
 }
 
+// Get makes a HTTP get request on the url and returns a string response back.
 func Get(url string) (string, appError.AppErr) {
 	var err appError.AppErr
 	req := fasthttp.AcquireRequest()

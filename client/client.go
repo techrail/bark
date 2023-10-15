@@ -27,6 +27,7 @@ type Config struct {
 	AlertWebhook webhook
 }
 
+// parseMessage extracts LMID (Log Message Identifier) if a valid LMID exists in message string otherwise.
 func (c *Config) parseMessage(msg string) models.BarkLog {
 	l := models.BarkLog{
 		ServiceName: c.ServiceName,
@@ -107,6 +108,7 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 	return l
 }
 
+// getLogLevelFromCharacter returns a string of log level for the first character of log level passed.
 func (c *Config) getLogLevelFromCharacter(s string) string {
 	switch strings.ToUpper(s) {
 	case "P":
@@ -128,6 +130,7 @@ func (c *Config) getLogLevelFromCharacter(s string) string {
 	}
 }
 
+// getCharacterFromLogLevel returns a string of letter of log level for the log level string passed.
 func (c *Config) getCharacterFromLogLevel(logLevel string) string {
 	switch logLevel {
 	case constants.Panic:
@@ -149,6 +152,10 @@ func (c *Config) getCharacterFromLogLevel(logLevel string) string {
 	}
 }
 
+// dispatchLogMessage is responsible for dispatching a log to server.
+// This method takes in a log and sends it to PendingLogsChan if bulk send is enabled,
+// otherwise if bulk send is disabled it creates a network request to send the log,
+// in a new goroutine.
 func (c *Config) dispatchLogMessage(l models.BarkLog) {
 	if c.BulkSend {
 		go InsertSingleRequest(l)
@@ -164,6 +171,7 @@ func (c *Config) dispatchLogMessage(l models.BarkLog) {
 	}
 }
 
+// Panic sends a LvlPanic log to server and prints the log if slog is enabled.
 func (c *Config) Panic(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Panic
@@ -176,6 +184,8 @@ func (c *Config) Panic(message string) {
 	}
 }
 
+// Alert sends a LvlAlert log to server and prints the log if slog is enabled.
+// This also initiates a AlertWebhook call.
 func (c *Config) Alert(message string, blocking bool) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
@@ -212,6 +222,7 @@ func (c *Config) Alert(message string, blocking bool) {
 	}
 }
 
+// Error sends a LvlError level log to server and prints the log if slog is enabled.
 func (c *Config) Error(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Error
@@ -223,6 +234,8 @@ func (c *Config) Error(message string) {
 		c.Slogger.Error(message)
 	}
 }
+
+// Warn sends a LvlWarning level log to server and prints the log if slog is enabled.
 func (c *Config) Warn(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Warning
@@ -234,6 +247,8 @@ func (c *Config) Warn(message string) {
 		c.Slogger.Warn(message)
 	}
 }
+
+// Notice sends a LvlNotice level log to server and prints the log if slog is enabled.
 func (c *Config) Notice(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Notice
@@ -245,6 +260,8 @@ func (c *Config) Notice(message string) {
 		c.Slogger.Log(context.Background(), LvlNotice, message)
 	}
 }
+
+// Info sends a LvlInfo level log to server and prints the log if slog is enabled.
 func (c *Config) Info(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Info
@@ -257,6 +274,7 @@ func (c *Config) Info(message string) {
 	}
 }
 
+// Debug sends a LvlDebug level log to server and prints the log if slog is enabled.
 func (c *Config) Debug(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Debug
@@ -269,6 +287,8 @@ func (c *Config) Debug(message string) {
 	}
 }
 
+// Default sends a Config.Default level log to server (specified while creating client)
+// and prints the log if slog is enabled.
 func (c *Config) Default(message string) {
 	l := c.parseMessage(message)
 	l.LogTime = time.Now().UTC()
@@ -297,6 +317,7 @@ func (c *Config) Default(message string) {
 	}
 }
 
+// Raw allows user to send a RawLog to server.
 func (c *Config) Raw(rawLog RawLog, returnError bool) error {
 	// Try to parse the more data field
 	moreData, err := jsonObject.ToJsonObject(rawLog.MoreData)
@@ -349,6 +370,9 @@ func (c *Config) Raw(rawLog RawLog, returnError bool) error {
 	return nil
 }
 
+// Println sends logs to server based on LMID passed in message string.
+// If the LMID is invalid an LvlInfo log level considered by default.
+// This method prints the logs regardless if the slog is enabled or not.
 func (c *Config) Println(message string) {
 	l := c.parseMessage(message)
 	l.LogTime = time.Now().UTC()
@@ -380,157 +404,86 @@ func (c *Config) Println(message string) {
 	}
 }
 
+// Printf performs the same operation as Config.Println but it accepts a format specifier.
 func (c *Config) Printf(message string, format ...any) {
 	msg := fmt.Sprintf(message, format...)
-	l := c.parseMessage(msg)
-	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
-	c.dispatchLogMessage(l)
-
-	if c.Slogger != nil {
-		switch l.LogLevel {
-		case PANIC:
-			c.Slogger.Log(context.Background(), LvlPanic, msg)
-		case ALERT:
-			c.Slogger.Log(context.Background(), LvlAlert, msg)
-		case ERROR:
-			c.Slogger.Error(msg)
-		case WARNING:
-			c.Slogger.Warn(msg)
-		case NOTICE:
-			c.Slogger.Log(context.Background(), LvlNotice, msg)
-		case DEBUG:
-			c.Slogger.Debug(msg)
-		case INFO:
-			fallthrough
-		default:
-			c.Slogger.Info(msg)
-		}
-	} else {
-		// In addition to sending the log to server, we should also print it!
-		fmt.Println(msg)
-	}
+	c.Println(msg)
 }
 
+// Panicf performs the same operation as Config.Panic but it accepts a format specifier.
 func (c *Config) Panicf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
-	l := c.parseMessage(message)
-	l.LogLevel = constants.Panic
-	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
-	c.dispatchLogMessage(l)
-
-	if c.Slogger != nil {
-		c.Slogger.Log(context.Background(), LvlPanic, message)
-	}
+	c.Panic(message)
 }
 
+// Alertf performs the same operation as Config.Alert but it accepts a format specifier.
 func (c *Config) Alertf(message string, blocking bool, format ...any) {
 	message = fmt.Sprintf(message, format...)
-	l := c.parseMessage(message)
-	l.LogLevel = constants.Alert
-	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
-	c.dispatchLogMessage(l)
-
-	if c.AlertWebhook != nil {
-		if blocking {
-			err := c.AlertWebhook(l)
-			if err != nil {
-				if c.Slogger != nil {
-					c.Slogger.Log(context.Background(), LvlAlert, "unable to send alert")
-				} else {
-					fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
-				}
-			}
-		} else {
-			go func() {
-				err := c.AlertWebhook(l)
-				if err != nil {
-					if c.Slogger != nil {
-						c.Slogger.Log(context.Background(), LvlAlert, "unable to send alert")
-					} else {
-						fmt.Printf("E#1LR1V1 - Webhook failed to send. Error: %v | Original Log Message: %v\n", err, message)
-					}
-				}
-			}()
-		}
-	}
-
-	if c.Slogger != nil {
-		c.Slogger.Log(context.Background(), LvlAlert, message)
-	}
+	c.Alert(message, blocking)
 }
 
+// Errorf performs the same operation as Config.Error but it accepts a format specifier.
 func (c *Config) Errorf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
-	l := c.parseMessage(message)
-	l.LogLevel = constants.Error
-	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
-	c.dispatchLogMessage(l)
-
-	if c.Slogger != nil {
-		c.Slogger.Error(message)
-	}
+	c.Error(message)
 }
 
+// Warnf performs the same operation as Config.Warn but it accepts a format specifier.
 func (c *Config) Warnf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
-	l := c.parseMessage(message)
-	l.LogLevel = constants.Warning
-	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
-	c.dispatchLogMessage(l)
-
-	if c.Slogger != nil {
-		c.Slogger.Warn(message)
-	}
+	c.Warn(message)
 }
 
+// Noticef performs the same operation as Config.Notice but it accepts a format specifier.
 func (c *Config) Noticef(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
-	l := c.parseMessage(message)
-	l.LogLevel = constants.Notice
-	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
-	c.dispatchLogMessage(l)
-
-	if c.Slogger != nil {
-		c.Slogger.Log(context.Background(), LvlNotice, message)
-	}
+	c.Notice(message)
 }
 
+// Infof performs the same operation as Config.Info but it accepts a format specifier.
 func (c *Config) Infof(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
-	l := c.parseMessage(message)
-	l.LogLevel = constants.Info
-	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
-	c.dispatchLogMessage(l)
-
-	if c.Slogger != nil {
-		c.Slogger.Info(message)
-	}
+	c.Info(message)
 }
 
+// Debugf performs the same operation as Config.Debug but it accepts a format specifier.
 func (c *Config) Debugf(message string, format ...any) {
 	message = fmt.Sprintf(message, format...)
-	l := c.parseMessage(message)
-	l.LogLevel = constants.Debug
-	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
-	c.dispatchLogMessage(l)
-
-	if c.Slogger != nil {
-		c.Slogger.Debug(message)
-	}
+	c.Debug(message)
 }
 
+// SetAlertWebhook sets a webhook to be used by Config.Alert method
 func (c *Config) SetAlertWebhook(f webhook) {
 	c.AlertWebhook = f
 }
 
+// NewClient creates and returns a new Config object with the given parameters.
+// A Config object represents the configuration for logging to a remote server.
+// Config object is the main point interactions between user and bark client library.
+//
+// The url parameter is the base URL of the remote bark server where the logs will be sent.
+// It must be a valid URL string.
+//
+// The errLevel parameter is the error level for logging. It must be one of the constants
+// defined in the constants package, such as INFO, WARN, ERROR, etc. If an invalid value
+// is given, the function will print a warning message and use INFO as the default level.
+//
+// The svcName parameter is the name of the service that is logging. It must be a non-empty
+// string. If an empty string is given, the function will print a warning message and use
+// constants.DefaultLogServiceName as the default value.
+//
+// The sessName parameter is the name of the session that is logging. It must be a non-empty
+// string. If an empty string is given, the function will print a warning message and use
+// appRuntime.SessionName as the default value.
+//
+// The enableSlog parameter is a boolean flag that indicates whether to enable slog logging
+// to standard output. If true, the function will create and assign a new slog.Logger object
+// to the Config object. If false, the Config object will have a nil Slogger field.
+//
+// The enableBulkSend parameter is a boolean flag that indicates whether to enable bulk sending
+// of logs to the remote server. If true, the function will start a goroutine that periodically
+// sends all the buffered logs to the server. If false, the logs will be sent individually as
+// they are generated.
 func NewClient(url, errLevel, svcName, sessName string, enableSlog bool, enableBulkSend bool) *Config {
 	if !isValid(errLevel) {
 		fmt.Printf("L#1LPYG2 - %v is not an acceptable log level. %v will be used as the default log level", errLevel, constants.DefaultLogLevel)
@@ -581,6 +534,8 @@ func (c *Config) WithSlogHandler(handler slog.Handler) {
 	c.Slogger = NewWithCustomHandler(handler)
 }
 
+// WaitAndEnd will wait for all logs to be sent to server.
+// This is an optional blocking call if the there are unsent logs.
 func (c *Config) WaitAndEnd() {
 	Wg.Wait()
 }

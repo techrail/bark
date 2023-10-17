@@ -26,6 +26,8 @@ type BarkLog struct {
 	MoreData    jsonObject.Typ `db:"more_data" json:"moreData"`
 }
 
+// ValidateForInsert checks for missing values in the incoming BarkLog's fields.
+// In case a missing value is encountered, a default value is assigned to it.
 func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 	if b.LogTime.IsZero() {
 		b.LogTime = time.Now().UTC()
@@ -96,6 +98,8 @@ func (bld *BarkLogDao) Insert(l BarkLog) error {
 	return nil
 }
 
+// InsertServerStartedLog inserts a log entry in the postgres DB stating that bark server has started successfully.
+// This acts as a checkpoint that everything is working as expected in the DB connection department.
 func (bld *BarkLogDao) InsertServerStartedLog() error {
 	return bld.Insert(BarkLog{
 		LogTime:     time.Now().UTC(),
@@ -108,6 +112,7 @@ func (bld *BarkLogDao) InsertServerStartedLog() error {
 	})
 }
 
+// InsertBatch sends a batch of logs to the DB.
 func (bld *BarkLogDao) InsertBatch(l []BarkLog) error {
 	batchOfBarkLog := [][]any{}
 	for i := 0; i < len(l); i++ {

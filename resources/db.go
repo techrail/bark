@@ -18,6 +18,7 @@ var ServerDbSaverWg sync.WaitGroup
 
 var BarkDb *BarkPostgresDb
 
+// InitDb : InitDB returns error (if any) encountered while trying to establish a connection to the postgres DB instance.
 func InitDb(dbUrl string) error {
 	// Connect to Postgres DB instance
 	var err error
@@ -30,6 +31,7 @@ func InitDb(dbUrl string) error {
 	return nil
 }
 
+// OpenDb : OpenDB returns a pointer to the `BarkPostgresDb` object.
 func OpenDb(dbUrl string) (*BarkPostgresDb, error) {
 	connPool, err := pgxpool.NewWithConfig(context.Background(), Config(dbUrl))
 	if err != nil {
@@ -39,6 +41,7 @@ func OpenDb(dbUrl string) (*BarkPostgresDb, error) {
 	return &BarkPostgresDb{Client: connPool}, nil
 }
 
+// CloseDb closes the connection to the DB.
 func (d *BarkPostgresDb) CloseDb() {
 	d.Client.Close()
 }

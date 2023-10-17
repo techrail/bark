@@ -9,7 +9,6 @@ import (
 	"github.com/techrail/bark/typs/jsonObject"
 	"github.com/techrail/bark/utils"
 	"io"
-	"log"
 	"log/slog"
 	"os"
 	"strings"
@@ -563,6 +562,28 @@ func NewClient(url, defaultLogLvl, svcName, sessName string, enableSlog bool, en
 	}
 }
 
+// NewClientWithServer returns a client config which performs the job of the server as well
+// It differs from NewClient in two main ways: it does not have the option to do bulk inserts (they are not needed)
+// and it accepts the database URL instead of server URL.
+//
+// The url parameter is the database URL where the logs will be stored.
+// It must be a valid postgresql protocol string.
+//
+// The defaultLogLvl parameter is the log level for logging. It must be one of the constants
+// defined in the constants package, such as INFO, WARN, ERROR, etc. If an invalid value
+// is given, the function will print a warning message and use INFO as the default level.
+//
+// The svcName parameter is the name of the service that is logging. It must be a non-empty
+// string. If an empty string is given, the function will print a warning message and use
+// constants.DefaultLogServiceName as the default value.
+//
+// The sessName parameter is the name of the session that is logging. It must be a non-empty
+// string. If an empty string is given, the function will print a warning message and use
+// appRuntime.SessionName as the default value.
+//
+// The enableSlog parameter is a boolean flag that indicates whether to enable slog logging
+// to standard output. If true, the function will create and assign a new slog.Logger object
+// to the Config object. If false, the Config object will have a nil Slogger field.
 func NewClientWithServer(dbUrl, defaultLogLvl, svcName, sessName string, enableSlog bool) *Config {
 	if !isValid(defaultLogLvl) {
 		fmt.Printf("L#1M1XXN - %v is not an acceptable log level. %v will be used as the default log level", defaultLogLvl, constants.DefaultLogLevel)
@@ -595,13 +616,13 @@ func NewClientWithServer(dbUrl, defaultLogLvl, svcName, sessName string, enableS
 
 	err = resources.InitDb(dbUrl)
 	if err != nil {
-		log.Fatal("E#1M2UFR - " + err.Error())
+		panic("E#1M2UFR - " + err.Error())
 	}
 
 	bld := models.NewBarkLogDao()
 	err = bld.InsertServerStartedLog()
 	if err != nil {
-		log.Fatal("P#1LQ2YQ - Bark server start failed: " + err.Error())
+		panic("P#1LQ2YQ - Bark server start failed: " + err.Error())
 	}
 
 	// Start the server side

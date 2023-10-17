@@ -2,7 +2,7 @@ package resources
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -21,7 +21,7 @@ func Config(dbUrl string) *pgxpool.Config {
 
 	dbConfig, err := pgxpool.ParseConfig(dbUrl)
 	if err != nil {
-		log.Fatal("Failed to create a config, error: ", err)
+		panic(fmt.Sprintf("Failed to create a config, error: %v", err))
 	}
 
 	dbConfig.MaxConns = defaultMaxConns

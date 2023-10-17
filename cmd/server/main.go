@@ -6,7 +6,6 @@ import (
 	"github.com/techrail/bark/models"
 	"github.com/techrail/bark/utils"
 	"github.com/valyala/fasthttp"
-	"log"
 	"os"
 
 	"github.com/techrail/bark/controllers"
@@ -57,7 +56,7 @@ func main() {
 	}
 	err = resources.InitDb(dbUrl)
 	if err != nil {
-		log.Fatal("E#1KDZRP - " + err.Error())
+		panic("E#1KDZRP - " + err.Error())
 	}
 	bld := models.NewBarkLogDao()
 
@@ -65,10 +64,13 @@ func main() {
 	// Returns an error and halts the server boot up in case the connection acquired to the postgres DB is not proper.
 	err = bld.InsertServerStartedLog()
 	if err != nil {
-		log.Fatal("P#1LQ2YQ - Bark server start failed: " + err.Error())
+		panic("P#1LQ2YQ - Bark server start failed: " + err.Error())
 	}
 
 	// Go routine which writes logs received in the LogChannel to DB.
 	go dbLogWriter.KeepSavingLogs()
-	log.Fatal(fasthttp.ListenAndServe(address, r.Handler))
+	err = fasthttp.ListenAndServe(address, r.Handler)
+	if err != nil {
+		fmt.Println("E#1M30BA - Listen and serve failed: ", err.Error())
+	}
 }

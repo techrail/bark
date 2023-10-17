@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/techrail/bark/client"
 	"os"
+	"time"
 )
 
 func main() {
@@ -13,10 +14,6 @@ func main() {
 		return
 	}
 	log := client.NewClient("http://127.0.0.1:8080/", "INFO", "brktest", "local session", false, true)
-
-	for i := 0; i < 5_000_000; i++ {
-		log.Printf("1LTOU4 - Default message - %v", i)
-	}
 
 	log.Panic("Panic message")
 	log.Alert("Alert message2", true)
@@ -68,7 +65,15 @@ func main() {
 
 	log.Println("1LPWC7 - Default message")
 
+	_ = log.Raw(client.RawLog{
+		LogTime:     time.Now().UTC(),
+		LogLevel:    "INFO",
+		ServiceName: "Bark Test",
+		SessionName: "TestSessionWait1",
+		Code:        "1M2U4J",
+		Message:     "Testing raw log",
+		MoreData:    nil,
+	}, false)
+
 	log.WaitAndEnd()
-	// --------------------------------
-	//time.Sleep(1 * time.Second)
 }

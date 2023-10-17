@@ -3,6 +3,7 @@ package dbLogWriter
 import (
 	"fmt"
 	"github.com/techrail/bark/constants"
+	"github.com/techrail/bark/resources"
 	"time"
 
 	"github.com/techrail/bark/appRuntime"
@@ -16,8 +17,8 @@ func init() {
 	BarkLogDao = models.NewBarkLogDao()
 }
 
-// StartWritingLogs is a go routine to check channel length and commit to DB
-func StartWritingLogs() {
+// KeepSavingLogs is a go routine to check channel length and commit to DB
+func KeepSavingLogs() {
 	logChannelLength := 0
 	for {
 		logChannelLength = len(channels.LogChannel)
@@ -36,6 +37,7 @@ func StartWritingLogs() {
 			}
 
 			go func() {
+				defer resources.ServerDbSaverWg.Add(-(len(logBatch)))
 				err := BarkLogDao.InsertBatch(logBatch)
 				if err != nil {
 					fmt.Println("E#1LVMIR - Large Batch insertion failed. Error: " + err.Error() + "\n")
@@ -59,6 +61,7 @@ func StartWritingLogs() {
 			}
 
 			go func() {
+				defer resources.ServerDbSaverWg.Add(-(len(logBatch)))
 				err := BarkLogDao.InsertBatch(logBatch)
 				if err != nil {
 					fmt.Println("E#1LVMKR - Medium Batch insertion failed. Error: " + err.Error() + "\n")
@@ -82,6 +85,7 @@ func StartWritingLogs() {
 			}
 
 			go func() {
+				defer resources.ServerDbSaverWg.Add(-(len(logBatch)))
 				err := BarkLogDao.InsertBatch(logBatch)
 				if err != nil {
 					fmt.Println("E#1LVMLE - Small Batch insertion failed. Error: " + err.Error() + "\n")
@@ -93,10 +97,12 @@ func StartWritingLogs() {
 				fmt.Println("L#1LVMFR - Small Batch inserted at ", time.Now().Format("2006-01-02 15:04:05"))
 			}()
 		} else if logChannelLength > 0 && logChannelLength < constants.ServerLogInsertionBatchSizeSmall {
-			fmt.Println("Sending Single Log")
+			//fmt.Println("Sending Single Log")
 			// Commit one at a time
 			singleLog := <-channels.LogChannel
 			err := BarkLogDao.Insert(singleLog)
+
+			resources.ServerDbSaverWg.Done()
 
 			if err != nil {
 				fmt.Println("E#1LVMIR - Individual log insertion failed. Error: " + err.Error() + "\n")
@@ -120,9 +126,11 @@ func StartWritingLogs() {
 						fmt.Println("E#1LVMN5 - Remaining Batch insertion failed. Error: " + err.Error() + "\n")
 						for _, logEntry := range logBatch {
 							fmt.Printf("E#1LVMN7 - Log message: | %v\n", logEntry)
+							resources.ServerDbSaverWg.Done()
 						}
 						return
 					}
+					resources.ServerDbSaverWg.Add(-(len(logBatch)))
 					fmt.Println("L#1LVMN9 - Batch inserted at ", time.Now().Format("2006-01-02 15:04:05"))
 				}
 			} else {

@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/fasthttp/router"
 	"github.com/techrail/bark/models"
+	"github.com/techrail/bark/utils"
+	"github.com/valyala/fasthttp"
 	"log"
 	"os"
-
-	"github.com/fasthttp/router"
-	"github.com/valyala/fasthttp"
 
 	"github.com/techrail/bark/controllers"
 	"github.com/techrail/bark/resources"
@@ -36,7 +36,15 @@ func main() {
 	r.POST("/insertSingle", controllers.SendSingleToChannel)
 	r.POST("/insertMultiple", controllers.SendMultipleToChannel)
 	r.POST("/shutdownServiceAsap", controllers.ShutdownService)
-	err := resources.InitDb()
+
+	fmt.Printf("I#1M2UDR - Database connection string from Environment: %s\n", os.Getenv("BARK_DATABASE_URL"))
+
+	dbUrl := os.Getenv("BARK_DATABASE_URL")
+	err := utils.ParsePostgresUrl(dbUrl)
+	if err != nil {
+		panic(err.Error())
+	}
+	err = resources.InitDb(dbUrl)
 	if err != nil {
 		log.Fatal("E#1KDZRP - " + err.Error())
 	}
@@ -46,7 +54,6 @@ func main() {
 		log.Fatal("P#1LQ2YQ - Bark server start failed: " + err.Error())
 	}
 
-	go dbLogWriter.StartWritingLogs()
+	go dbLogWriter.KeepSavingLogs()
 	log.Fatal(fasthttp.ListenAndServe(address, r.Handler))
-
 }

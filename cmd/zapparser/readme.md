@@ -17,13 +17,6 @@
 
 ## Getting Started
 
-### Prerequisites
-
-Before using the Zap Parser, you need to have the following:
-
-- An executable suitable for your platform (e.g., `zapparser.exe` for Windows).
-- A Bark database or server URL for sending log data.
-
 ### Manual Build
 
 1. Clone this repository to your local machine:

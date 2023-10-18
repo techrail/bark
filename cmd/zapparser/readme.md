@@ -65,8 +65,7 @@ You can further customize the timestamp format using the `-format` option. This 
 By providing this flexibility, the Zap Parser ensures that log entries with different timestamp formats can be effectively processed and sent to the Bark server.
 
 > [!WARNING]  
-> Critical content demanding immediate user attention due to potential risks.
-
+> The Zap Parser exclusively processes logs generated in production mode and captures data only for the fields "level," "timestamp," and "msg."
 ## Contributing
 
 If you'd like to contribute to this project, please read our [Contribution Guidelines](../../CONTRIBUTING.md).

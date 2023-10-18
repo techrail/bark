@@ -35,7 +35,7 @@ Before using the Zap Parser, you need to have the following:
 2. Navigate to the project directory:
 
    ```bash
-   cd zapparser
+   go build cmd/zapparser/zapparser.go
    ```
 
 3. Execute the Zap Parser with the desired parameters, as explained in the [Usage](#usage) section.

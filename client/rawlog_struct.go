@@ -5,7 +5,6 @@ import (
 )
 
 type RawLog struct {
-	Id          int64
 	LogTime     time.Time
 	LogLevel    string
 	ServiceName string

@@ -3,6 +3,7 @@ package ingestion
 import (
 	"fmt"
 	"github.com/techrail/bark/constants"
+	"github.com/techrail/bark/resources"
 
 	"github.com/techrail/bark/channels"
 	"github.com/techrail/bark/models"
@@ -19,6 +20,7 @@ func InsertSingle(logEntry models.BarkLog) {
 	logEntry, err := logEntry.ValidateForInsert()
 
 	if err == nil {
+		resources.ServerDbSaverWg.Add(1)
 		channels.LogChannel <- logEntry
 	}
 }
@@ -37,6 +39,7 @@ func InsertMultiple(logEntries []models.BarkLog) {
 		logEntry, err = logEntry.ValidateForInsert()
 
 		if err == nil {
+			resources.ServerDbSaverWg.Add(1)
 			channels.LogChannel <- logEntry
 		}
 	}

@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
@@ -13,13 +14,15 @@ type BarkPostgresDb struct {
 	Client *pgxpool.Pool
 }
 
+var ServerDbSaverWg sync.WaitGroup
+
 var BarkDb *BarkPostgresDb
 
 // InitDb : InitDB returns error (if any) encountered while trying to establish a connection to the postgres DB instance.
-func InitDb() error {
+func InitDb(dbUrl string) error {
 	// Connect to Postgres DB instance
 	var err error
-	BarkDb, err = OpenDb()
+	BarkDb, err = OpenDb(dbUrl)
 	if err != nil {
 		return fmt.Errorf("E#1KDZOZ - Opening database failed. Error: %v\n", err)
 	}
@@ -29,9 +32,8 @@ func InitDb() error {
 }
 
 // OpenDb : OpenDB returns a pointer to the `BarkPostgresDb` object.
-// BarkPostgresDb struct wraps a pointer to pgx connection pool object.
-func OpenDb() (*BarkPostgresDb, error) {
-	connPool, err := pgxpool.NewWithConfig(context.Background(), Config())
+func OpenDb(dbUrl string) (*BarkPostgresDb, error) {
+	connPool, err := pgxpool.NewWithConfig(context.Background(), Config(dbUrl))
 	if err != nil {
 		return &BarkPostgresDb{}, fmt.Errorf("E#1KDW57 - error connecting to db: %w", err)
 	}

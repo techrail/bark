@@ -2,12 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/techrail/bark/models"
-	"log"
-	"os"
-
 	"github.com/fasthttp/router"
+	"github.com/techrail/bark/models"
+	"github.com/techrail/bark/utils"
 	"github.com/valyala/fasthttp"
+	"os"
 
 	"github.com/techrail/bark/controllers"
 	"github.com/techrail/bark/resources"
@@ -48,10 +47,16 @@ func main() {
 	// It will, however, shut down after it has completely saved all the logs received up till that point to the database.
 	r.POST("/shutdownServiceAsap", controllers.ShutdownService)
 
-	//InitDB attempts to make a connection to the postgres DB instance using the environment variable value set for `BARK_DATABASE_URL`.
-	err := resources.InitDb()
+	fmt.Printf("I#1M2UDR - Database connection string from Environment: %s\n", os.Getenv("BARK_DATABASE_URL"))
+
+	dbUrl := os.Getenv("BARK_DATABASE_URL")
+	err := utils.ParsePostgresUrl(dbUrl)
 	if err != nil {
-		log.Fatal("E#1KDZRP - " + err.Error())
+		panic(err.Error())
+	}
+	err = resources.InitDb(dbUrl)
+	if err != nil {
+		panic("E#1KDZRP - " + err.Error())
 	}
 	bld := models.NewBarkLogDao()
 
@@ -59,11 +64,13 @@ func main() {
 	// Returns an error and halts the server boot up in case the connection acquired to the postgres DB is not proper.
 	err = bld.InsertServerStartedLog()
 	if err != nil {
-		log.Fatal("P#1LQ2YQ - Bark server start failed: " + err.Error())
+		panic("P#1LQ2YQ - Bark server start failed: " + err.Error())
 	}
 
 	// Go routine which writes logs received in the LogChannel to DB.
-	go dbLogWriter.StartWritingLogs()
-	log.Fatal(fasthttp.ListenAndServe(address, r.Handler))
-
+	go dbLogWriter.KeepSavingLogs()
+	err = fasthttp.ListenAndServe(address, r.Handler)
+	if err != nil {
+		fmt.Println("E#1M30BA - Listen and serve failed: ", err.Error())
+	}
 }

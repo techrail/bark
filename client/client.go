@@ -3,7 +3,11 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/techrail/bark/resources"
+	"github.com/techrail/bark/services/dbLogWriter"
+	"github.com/techrail/bark/services/ingestion"
 	"github.com/techrail/bark/typs/jsonObject"
+	"github.com/techrail/bark/utils"
 	"io"
 	"log/slog"
 	"os"
@@ -18,14 +22,14 @@ import (
 type webhook func(models.BarkLog) error
 
 type Config struct {
-	serverDisabled bool
-	BaseUrl        string
-	ErrorLevel     string
-	ServiceName    string
-	SessionName    string
-	BulkSend       bool
-	Slogger        *slog.Logger
-	AlertWebhook   webhook
+	serverMode   int
+	BaseUrl      string
+	ErrorLevel   string
+	ServiceName  string
+	SessionName  string
+	BulkSend     bool
+	Slogger      *slog.Logger
+	AlertWebhook webhook
 }
 
 // parseMessage extracts LMID (Log Message Identifier) if a valid LMID exists in message string otherwise.
@@ -158,22 +162,27 @@ func (c *Config) getCharacterFromLogLevel(logLevel string) string {
 // otherwise if bulk send is disabled it creates a network request to send the log,
 // in a new goroutine.
 func (c *Config) dispatchLogMessage(l models.BarkLog) {
-	if c.serverDisabled {
-		// Server is disabled. Return
+	switch c.serverMode {
+	case constants.ClientServerUsageModeDisabled:
+		// Server is disabled. Nothing
 		return
-	}
-
-	if c.BulkSend {
-		go InsertSingleRequest(l)
-	} else {
-		Wg.Add(1)
-		go func() {
-			defer Wg.Done()
-			_, err := PostLog(c.BaseUrl+constants.SingleInsertUrl, l)
-			if err.Severity == 1 {
-				fmt.Println(err.Msg)
-			}
-		}()
+	case constants.ClientServerUsageModeRemoteServer:
+		if c.BulkSend {
+			go InsertSingleRequest(l)
+		} else {
+			Wg.Add(1)
+			go func() {
+				defer Wg.Done()
+				_, err := PostLog(c.BaseUrl+constants.SingleInsertUrl, l)
+				if err.Severity == 1 {
+					fmt.Println(err.Msg)
+				}
+			}()
+		}
+	case constants.ClientServerUsageModeEmbedded:
+		go ingestion.InsertSingle(l)
+	default:
+		panic(fmt.Sprintf("P#1M2RSP - Unexpected server usage mode: %v", c.serverMode))
 	}
 }
 
@@ -475,13 +484,13 @@ func NewSloggerClient(defaultLogLevel string) *Config {
 	slogger := newSlogger(os.Stdout)
 
 	return &Config{
-		serverDisabled: true,
-		BaseUrl:        constants.DisabledServerUrl,
-		ErrorLevel:     defaultLogLevel,
-		ServiceName:    "",
-		SessionName:    "",
-		Slogger:        slogger,
-		BulkSend:       false,
+		serverMode:  constants.ClientServerUsageModeDisabled,
+		BaseUrl:     constants.DisabledServerUrl,
+		ErrorLevel:  defaultLogLevel,
+		ServiceName: "",
+		SessionName: "",
+		Slogger:     slogger,
+		BulkSend:    false,
 	}
 }
 
@@ -543,12 +552,90 @@ func NewClient(url, defaultLogLvl, svcName, sessName string, enableSlog bool, en
 	}
 
 	return &Config{
+		serverMode:  constants.ClientServerUsageModeRemoteServer,
 		BaseUrl:     url,
 		ErrorLevel:  defaultLogLvl,
 		ServiceName: svcName,
 		SessionName: sessName,
 		Slogger:     slogger,
 		BulkSend:    enableBulkSend,
+	}
+}
+
+// NewClientWithServer returns a client config which performs the job of the server as well
+// It differs from NewClient in two main ways: it does not have the option to do bulk inserts (they are not needed)
+// and it accepts the database URL instead of server URL.
+//
+// The url parameter is the database URL where the logs will be stored.
+// It must be a valid postgresql protocol string.
+//
+// The defaultLogLvl parameter is the log level for logging. It must be one of the constants
+// defined in the constants package, such as INFO, WARN, ERROR, etc. If an invalid value
+// is given, the function will print a warning message and use INFO as the default level.
+//
+// The svcName parameter is the name of the service that is logging. It must be a non-empty
+// string. If an empty string is given, the function will print a warning message and use
+// constants.DefaultLogServiceName as the default value.
+//
+// The sessName parameter is the name of the session that is logging. It must be a non-empty
+// string. If an empty string is given, the function will print a warning message and use
+// appRuntime.SessionName as the default value.
+//
+// The enableSlog parameter is a boolean flag that indicates whether to enable slog logging
+// to standard output. If true, the function will create and assign a new slog.Logger object
+// to the Config object. If false, the Config object will have a nil Slogger field.
+func NewClientWithServer(dbUrl, defaultLogLvl, svcName, sessName string, enableSlog bool) *Config {
+	if !isValid(defaultLogLvl) {
+		fmt.Printf("L#1M1XXN - %v is not an acceptable log level. %v will be used as the default log level", defaultLogLvl, constants.DefaultLogLevel)
+		defaultLogLvl = constants.DefaultLogLevel
+	}
+
+	if strings.TrimSpace(svcName) == "" {
+		sessName = constants.DefaultLogServiceName
+		fmt.Printf("L#1M1XY9 - Blank service name supplied. Using %v as Session Name", sessName)
+	}
+
+	if strings.TrimSpace(sessName) == "" {
+		sessName = appRuntime.SessionName
+		fmt.Printf("L#1M1XZH - Blank session name supplied. Using %v as Session Name", sessName)
+	}
+
+	var slogger *slog.Logger
+
+	if enableSlog {
+		slogger = newSlogger(os.Stdout)
+	} else {
+		slogger = nil
+	}
+
+	// Connect to the database
+	err := utils.ParsePostgresUrl(dbUrl)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = resources.InitDb(dbUrl)
+	if err != nil {
+		panic("E#1M2UFR - " + err.Error())
+	}
+
+	bld := models.NewBarkLogDao()
+	err = bld.InsertServerStartedLog()
+	if err != nil {
+		panic("P#1LQ2YQ - Bark server start failed: " + err.Error())
+	}
+
+	// Start the server side
+	go dbLogWriter.KeepSavingLogs()
+
+	return &Config{
+		serverMode:  constants.ClientServerUsageModeEmbedded,
+		BaseUrl:     constants.DisabledServerUrl,
+		ErrorLevel:  defaultLogLvl,
+		ServiceName: svcName,
+		SessionName: sessName,
+		Slogger:     slogger,
+		BulkSend:    false,
 	}
 }
 
@@ -565,5 +652,17 @@ func (c *Config) WithSlogHandler(handler slog.Handler) {
 // WaitAndEnd will wait for all logs to be sent to server.
 // This is an optional blocking call if the there are unsent logs.
 func (c *Config) WaitAndEnd() {
-	Wg.Wait()
+	switch c.serverMode {
+	case constants.ClientServerUsageModeRemoteServer:
+		Wg.Wait()
+	case constants.ClientServerUsageModeEmbedded:
+		// Server is embedded in the client. Wait for the server side saver wait group to finish
+		resources.ServerDbSaverWg.Wait()
+	case constants.ClientServerUsageModeDisabled:
+		// nothing to do
+		return
+	default:
+		// This is not supposed to happen!
+		panic("P#1M2YQ4 - Invalid server mode for client")
+	}
 }

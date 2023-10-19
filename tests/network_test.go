@@ -19,7 +19,7 @@ func TestClientWithCustomOut(t *testing.T) {
 
 	file, _ := os.Create("../tmp/random.txt")
 
-	logClient.WithCustomOut(file)
+	logClient.SetCustomOut(file)
 
 	sendDummyLogsThroughAllMethods(logClient)
 }
@@ -29,7 +29,7 @@ func TestClientWithCustomSlogHandler(t *testing.T) {
 
 	file, _ := os.Create("../tmp/random.txt")
 
-	logClient.WithSlogHandler(slog.NewJSONHandler(file, client.Options()))
+	logClient.SetSlogHandler(slog.NewJSONHandler(file, client.SlogHandlerOptions()))
 
 	sendDummyLogsThroughAllMethods(logClient)
 }

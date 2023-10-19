@@ -73,26 +73,34 @@ The above piece of code will end up printing something like the following (the d
 2023/10/15 21:57:41 INFO Println message
 ```
 
-## Printing logs via standard output
-
+## Printing logs to a file
 Bark client, as shown above, is capable of sending logs to a server as well as printing them to the standard output as well. It can also do both of those things simultaneously. The architecture in very simple representation looks like this: 
 
 ![barkslogger.svg](../_nocode/images/barkslogger.svg)
 
-You can use any of the log methods available in bark client to do this. If you want to print the logs to a different output, such as a file, you can use the `WithCustomOut` method. This method takes an `io.Writer` parameter and sets it as the output writer for the bark client. For example, if you want to print the logs to a file named random.txt, you can do this:
+You can use any of the log methods available in bark client to do this. If you want to print the logs to a different output, such as a file, you can use the `SetCustomOut` method. This method takes an `io.Writer` parameter and sets it as the output writer for the bark client. For example, if you want to print the logs to a file named random.txt, you can do this:
 
 ```go
-barkClient := client.NewClient("<bark_server_url>", "<custom_log_level>", "<service_name>", "<session_name>", 
-    "<enable_slog_or_not>", "<enable_bulk_dispatch_to_server>")
+log := client.NewClient("http://127.0.0.1:8080/", "INFO", "BarkClientFileTest", "TestClientSession", true, false)
 
-file, _ := os.Create("random.txt")
+file, err := os.Create("random.txt")
+if err != nil {
+	fmt.Println("Error when creating new file: ", err)
+	return
+}
 
-logClient.WithCustomOut(file)
+log.SetCustomOut(file)
 
-barkClient.Info("Some Message that'll be send to random.txt file")
+log.Info("Some Message that'll be sent to random.txt file")
+log.WaitAndEnd()
+```
+The above code will write the output to `random.txt` file. You can expect the file to contain something like this:
+
+```text
+2023/10/18 19:27:51 INFO Some Message that'll be sent to random.txt file
 ```
 
-### Slog
+### Slog and writing to a file 
 
 Bark client uses [slog](https://go.dev/blog/slog) internally to handle the printing of the logs. Slog is a simple and structured logging library that comes with Go (version 1.21+).
 
@@ -100,17 +108,43 @@ You can customize how slog prints the logs by specifying a [handler](https://pkg
 
 **_Note:_** Changing the handler will only affect how the logs are printed, not how they are sent to bark server.
 
-To specify a handler for the bark client, you can use the `WithSlogHandler` method. This method takes a `handler` function as a parameter and sets it as the handler for the slog logger. For example, if you want to use the `JSONHandler` and print the logs as JSON objects to a file named `random.txt`, you can do this:
+To specify a handler for the bark client, you can use the `SetSlogHandler` method. This method takes a `handler` function as a parameter and sets it as the handler for the slog logger. For example, if you want to use the `JSONHandler` and print the logs as JSON objects to a file named `random.txt`, you can do this:
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/techrail/bark/client"
+	"log/slog"
+	"os"
+)
+
+func main() {
+	log := client.NewClient("http://127.0.0.1:8080/", "INFO", "BarkClientFileTest", "TestClientSession", true, false)
+
+	file, err := os.Create("random.txt")
+	if err != nil {
+		fmt.Println("E#1M5WRN - Error when creating new file: ", err)
+		return
+	}
+
+	// We are using JSONHandler here so the line that will be logged will actually be a JSON string
+	log.SetSlogHandler(slog.NewJSONHandler(file, client.SlogHandlerOptions()))
+	// If you want to log to STDOUT, you can use `os.Stdout` in place of the `file` as writer 
+	// Of course in case that you would have  remove the unused code from above.
+
+	log.Info("Some Message that'll be sent to random.txt file")
+	log.WaitAndEnd()
+}
 ```
-barkClient := client.NewClient("<bark_server_url>", "<custom_log_level>", "<service_name>", "<session_name>")
+You can expect the `random.txt` file to contain something like this with different time being logged (we are using a JSON handler for slog):
 
-file, _ := os.Create("random.txt")
-
-logClient.WithSlogHandler(slog.NewJSONHandler(file, barkslogger.Options()))
-
-barkClient.Info("Some Message that'll be send to random.txt file")
+```text
+{"time":"2023-10-18T19:30:38.773512+05:30","level":"INFO","msg":"Some Message that'll be sent to random.txt file"}
 ```
-You may have noticed that we are passing some options to the `JSONHandler` using the `barkslogger.Options()` method. This is because slog has predefined labels for only four log levels: `info, warning, debug, and error`. However, bark client supports three additional log levels: `alert, panic, and notice`. The options returned by `barkslogger.Options()` define labels for these additional log levels.
+
+You may have noticed that we are passing some options to the `JSONHandler` using the `client.SlogHandlerOptions()` method. This is because slog has predefined labels for only four log levels: `info, warning, debug, and error`. However, bark client supports three additional log levels: `alert, panic, and notice`. The options returned by `client.SlogHandlerOptions()` define labels for these additional log levels.
 
 If you add a nil options, the log labels will appear as described in the [slog documentation here](https://pkg.go.dev/log/slog#Level.String)
 
@@ -124,8 +158,9 @@ If you add a nil options, the log labels will appear as described in the [slog d
 The custom log levels defined by bark client have the following values:
 
 ```
-Notice = 1
+Notice = 3
 Alert = 9
 Panic = 10
 ```
+
 If you are writing a custom handler for slog, please make sure to handle these log levels appropriately.

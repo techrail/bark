@@ -639,14 +639,14 @@ func NewClientWithServer(dbUrl, defaultLogLvl, svcName, sessName string, enableS
 	}
 }
 
-// WithCustomOut allows users to set output to custom writer instead of the default standard output
-func (c *Config) WithCustomOut(out io.Writer) {
+// SetCustomOut allows users to set output to custom writer instead of the default standard output
+func (c *Config) SetCustomOut(out io.Writer) {
 	c.Slogger = newSlogger(out)
 }
 
-// WithSlogHandler allows users to specify their own slog handler
-func (c *Config) WithSlogHandler(handler slog.Handler) {
-	c.Slogger = NewWithCustomHandler(handler)
+// SetSlogHandler allows users to specify their own slog handler
+func (c *Config) SetSlogHandler(handler slog.Handler) {
+	c.Slogger = newSlogWithCustomHandler(handler)
 }
 
 // WaitAndEnd will wait for all logs to be sent to server.

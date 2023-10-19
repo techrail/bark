@@ -83,8 +83,8 @@ func NewBarkSlogHandler(out io.Writer) *BarkSlogHandler {
 	return handler
 }
 
-// Options returns slog.HandlerOptions which defines custom log levels.
-func Options() *slog.HandlerOptions {
+// SlogHandlerOptions returns slog.HandlerOptions which defines custom log levels.
+func SlogHandlerOptions() *slog.HandlerOptions {
 	return &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 		ReplaceAttr: func(groups []string, attr slog.Attr) slog.Attr {
@@ -118,7 +118,7 @@ func newSlogger(writer io.Writer) *slog.Logger {
 	return slog.New(handler)
 }
 
-// NewWithCustomHandler creates a new logger of type slog.Logger with custom slog.Handler object.
-func NewWithCustomHandler(handler slog.Handler) *slog.Logger {
+// newSlogWithCustomHandler creates a new logger of type slog.Logger with custom slog.Handler object.
+func newSlogWithCustomHandler(handler slog.Handler) *slog.Logger {
 	return slog.New(handler)
 }

@@ -73,42 +73,71 @@ The above piece of code will end up printing something like the following (the d
 2023/10/15 21:57:41 INFO Println message
 ```
 
-## Printing logs via standard output
+### Redirecting the output to a file
 
-Bark client, as shown above, is capable of sending logs to a server as well as printing them to the standard output as well. It can also do both of those things simultaneously. The architecture in very simple representation looks like this: 
+> [!IMPORTANT]  
+This section outlines the behavior of log printing when `enable_slog` is enabled during client initialization. It's important to note that this configuration does not affect how logs are sent to the Bark database. The `NewClient` and `NewClientWithServer` functions are designed to transmit logs to the Bark server or database. If you prefer not to send logs to the server, consider using the `NewSloggerClient` function.
 
-![barkslogger.svg](../_nocode/images/barkslogger.svg)
 
-You can use any of the log methods available in bark client to do this. If you want to print the logs to a different output, such as a file, you can use the `WithCustomOut` method. This method takes an `io.Writer` parameter and sets it as the output writer for the bark client. For example, if you want to print the logs to a file named random.txt, you can do this:
-
+To reroute logs to a file instead of the console (assuming `enable_slog` is set to true during client initialization), you can use the `WithCustomOut` method, accepting an `io.Writer` parameter. 
+Here's a sample usage:
 ```go
-barkClient := client.NewClient("<bark_server_url>", "<custom_log_level>", "<service_name>", "<session_name>", 
-    "<enable_slog_or_not>", "<enable_bulk_dispatch_to_server>")
+logger := client.NewClient("<bark_server_url>", "<custom_log_level>", "<service_name>", "<session_name>", true, "<enable_bulk_dispatch_to_server>")
 
-file, _ := os.Create("random.txt")
+file, _ := os.Create("<any file name>")
 
-logClient.WithCustomOut(file)
+log.WithCustomOut(file)
 
-barkClient.Info("Some Message that'll be send to random.txt file")
+log.Panic("Panic message")
+log.Alert("Alert message", true)
+log.Error("Error message")
+log.Warn("Warn message")
+log.Notice("Notice message")
+log.Info("Info message")
+log.Debug("Debug message")
+log.Println("Println message")
 ```
 
-### Slog
+This code configures a logger to direct log output to a designated file, showcasing multiple log levels.
+
+The above piece of code will end up printing to the specified file, something like the following (the dates in the beginning of each line will vary):
+```
+2023/10/15 21:57:41 PANIC Panic message
+2023/10/15 21:57:41 ALERT Alert message
+2023/10/15 21:57:41 ERROR Error message
+2023/10/15 21:57:41 WARN Warn message
+2023/10/15 21:57:41 NOTICE Notice message
+2023/10/15 21:57:41 INFO Info message
+2023/10/15 21:57:41 DEBUG Debug message
+2023/10/15 21:57:41 INFO Println message
+```
+
+### Handling output with slog Handlers
+
+> [!IMPORTANT]  
+This section outlines the behavior of log printing when `enable_slog` is enabled during client initialization. It's important to note that this configuration does not affect how logs are sent to the Bark database. The `NewClient` and `NewClientWithServer` functions are designed to transmit logs to the Bark server or database. If you prefer not to send logs to the server, consider using the `NewSloggerClient` function.
+
 
 Bark client uses [slog](https://go.dev/blog/slog) internally to handle the printing of the logs. Slog is a simple and structured logging library that comes with Go (version 1.21+).
 
 You can customize how slog prints the logs by specifying a [handler](https://pkg.go.dev/log/slog#Handler). A handler is a function that takes a log record and writes it to an output. Slog provides some built-in handlers, such as [JSONHandler](https://pkg.go.dev/log/slog#JSONHandler) and [TextHandler](https://pkg.go.dev/log/slog#TextHandler), or you can write your own.
 
-**_Note:_** Changing the handler will only affect how the logs are printed, not how they are sent to bark server.
-
 To specify a handler for the bark client, you can use the `WithSlogHandler` method. This method takes a `handler` function as a parameter and sets it as the handler for the slog logger. For example, if you want to use the `JSONHandler` and print the logs as JSON objects to a file named `random.txt`, you can do this:
-```
-barkClient := client.NewClient("<bark_server_url>", "<custom_log_level>", "<service_name>", "<session_name>")
+```go
+log := client.NewClient("<bark_server_url>", "<custom_log_level>", "<service_name>", "<session_name>", true, "<enable_bulk_dispatch_to_server>")
 
-file, _ := os.Create("random.txt")
+file, _ := os.Create("<any file name>")
 
-logClient.WithSlogHandler(slog.NewJSONHandler(file, barkslogger.Options()))
+log.WithSlogHandler(slog.NewJSONHandler(file, barkslogger.Options()))
 
-barkClient.Info("Some Message that'll be send to random.txt file")
+log.Panic("Panic message")
+log.Alert("Alert message", true)
+log.Error("Error message")
+log.Warn("Warn message")
+log.Notice("Notice message")
+log.Info("Info message")
+log.Debug("Debug message")
+log.Println("Println message")
 ```
 You may have noticed that we are passing some options to the `JSONHandler` using the `barkslogger.Options()` method. This is because slog has predefined labels for only four log levels: `info, warning, debug, and error`. However, bark client supports three additional log levels: `alert, panic, and notice`. The options returned by `barkslogger.Options()` define labels for these additional log levels.
 
@@ -116,15 +145,16 @@ If you add a nil options, the log labels will appear as described in the [slog d
 
 [Slog treats log levels as integers](https://pkg.go.dev/log/slog#Level). The predefined log levels have the following values:
 
+> [!]
 > LevelDebug Level = -4 \
 > LevelInfo  Level = 0 \
 > LevelWarn  Level = 4 \
-> LevelError Level = 8 \
+> LevelError Level = 8 
 
 The custom log levels defined by bark client have the following values:
 
 ```
-Notice = 1
+Notice = 3
 Alert = 9
 Panic = 10
 ```

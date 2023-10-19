@@ -74,7 +74,8 @@ The above piece of code will end up printing something like the following (the d
 ```
 
 ## Printing logs to a file
-Bark client, as shown above, is capable of sending logs to a server as well as printing them to the standard output as well. It can also do both of those things simultaneously. The architecture in very simple representation looks like this:
+
+Bark client, as shown above, is capable of sending logs to a server as well as printing them to the standard output as well. It can also do both of those things simultaneously. The architecture in very simple representation looks like this: 
 
 ![barkslogger.svg](../_nocode/images/barkslogger.svg)
 
@@ -100,7 +101,11 @@ The above code will write the output to `random.txt` file. You can expect the fi
 2023/10/18 19:27:51 INFO Some Message that'll be sent to random.txt file
 ```
 
+<<<<<<< HEAD
 ### Slog and writing to a file
+=======
+### Slog and writing to a file 
+>>>>>>> 4eb520da8943d4fb59197e963cb418c06a8467ba
 
 Bark client uses [slog](https://go.dev/blog/slog) internally to handle the printing of the logs. Slog is a simple and structured logging library that comes with Go (version 1.21+).
 

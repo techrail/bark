@@ -107,7 +107,7 @@ if [[ $choice != "yes" ]]; then
   echo "You chose not to tag this release as the latest one"
   return 0
 else
-  docker buildx build --platform linux/amd64,linux/arm64 -t techrail/bark:$RELEASEVERSION --push .
+  docker buildx build --platform linux/amd64,linux/arm64 -t techrail/bark:latest --push .
 fi
 
 

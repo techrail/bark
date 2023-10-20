@@ -7,12 +7,12 @@ if [[ $# -lt 1 ]]; then
 fi
 
 # Ensure that the git branch is at `main` and that there is no pending change to be committed and pushed
-if command -v git >/dev/null; then
+if ! command -v git >/dev/null; then
   echo "git is not installed. Cannot proceed"
   return 1
 fi
 
-if command -v docker >/dev/null; then
+if ! command -v docker >/dev/null; then
   echo "docker is not installed. Cannot proceed"
   return 1
 fi

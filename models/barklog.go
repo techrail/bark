@@ -2,34 +2,37 @@ package models
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/techrail/bark/appRuntime"
+	"github.com/techrail/bark/typs/jsonObject"
 	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 
-	`github.com/techrail/bark/appRuntime`
-	`github.com/techrail/bark/constants`
+	"github.com/techrail/bark/constants"
 	"github.com/techrail/bark/resources"
 )
 
 // BarkLog is a struct representing a log in Bark
 type BarkLog struct {
-	Id          int64           `db:"id" json:"id"`
-	LogTime     time.Time       `db:"log_time" json:"logTime"`
-	LogLevel    string          `db:"log_level" json:"logLevel"`
-	ServiceName string          `db:"service_name" json:"serviceName"`
-	SessionName string          `db:"session_name" json:"sessionName"`
-	Code        string          `db:"code" json:"code"`
-	Message     string          `db:"msg" json:"msg"`
-	MoreData    json.RawMessage `db:"more_data" json:"moreData"`
+	Id          int64          `db:"id" json:"id"`
+	LogTime     time.Time      `db:"log_time" json:"logTime"`
+	LogLevel    string         `db:"log_level" json:"logLevel"`
+	ServiceName string         `db:"service_name" json:"serviceName"`
+	SessionName string         `db:"session_name" json:"sessionName"`
+	Code        string         `db:"code" json:"code"`
+	Message     string         `db:"msg" json:"msg"`
+	MoreData    jsonObject.Typ `db:"more_data" json:"moreData"`
 }
 
+// ValidateForInsert checks for missing values in the incoming BarkLog's fields.
+// In case a missing value is encountered, a default value is assigned to it.
 func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 	if b.LogTime.IsZero() {
 		b.LogTime = time.Now().UTC()
 	}
+
 	if strings.TrimSpace(b.LogLevel) == "" {
 		b.LogLevel = constants.DefaultLogLevel
 	}
@@ -37,7 +40,7 @@ func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 		b.ServiceName = constants.DefaultLogServiceName
 	}
 	if strings.TrimSpace(b.SessionName) == "" {
-		b.SessionName = appRuntime.SessionName
+		b.SessionName = constants.DefaultLogSessionName
 	}
 
 	if strings.TrimSpace(b.Code) == "" && strings.TrimSpace(b.Message) == "" {
@@ -53,8 +56,8 @@ func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 		b.Message = constants.DefaultLogMessage
 	}
 
-	if len(b.MoreData) == 0 {
-		b.MoreData = json.RawMessage("{}")
+	if b.MoreData.IsEmpty() {
+		b.MoreData = jsonObject.EmptyNotNullJsonObject()
 	}
 
 	return b, nil
@@ -95,6 +98,21 @@ func (bld *BarkLogDao) Insert(l BarkLog) error {
 	return nil
 }
 
+// InsertServerStartedLog inserts a log entry in the postgres DB stating that bark server has started successfully.
+// This acts as a checkpoint that everything is working as expected in the DB connection department.
+func (bld *BarkLogDao) InsertServerStartedLog() error {
+	return bld.Insert(BarkLog{
+		LogTime:     time.Now().UTC(),
+		LogLevel:    constants.Info,
+		ServiceName: "Bark Server",
+		SessionName: appRuntime.SessionName,
+		Code:        "1LQ2X3",
+		Message:     "Server started",
+		MoreData:    jsonObject.EmptyNotNullJsonObject(),
+	})
+}
+
+// InsertBatch sends a batch of logs to the DB.
 func (bld *BarkLogDao) InsertBatch(l []BarkLog) error {
 	batchOfBarkLog := [][]any{}
 	for i := 0; i < len(l); i++ {

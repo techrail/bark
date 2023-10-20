@@ -3,26 +3,25 @@ package resources
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func Config() *pgxpool.Config {
+// Config retrieves the postgres DB connection url from environment variable named `BARK_DATABASE_URL`.
+// It then parses the connection url and checks for empty and invalid urls, if found, it logs the error and connection is not made.
+// If it passes the checks, the connection is established and function returns object of pgxpool config.
+func Config(dbUrl string) *pgxpool.Config {
 	const defaultMaxConns = int32(20)
 	const defaultMinConns = int32(5)
 	const defaultMaxConnLifetime = time.Hour
 	const defaultMaxConnIdleTime = time.Minute * 30
 	const defaultHealthCheckPeriod = time.Minute
 
-	fmt.Printf("Database connection string from Environment: %s\n", os.Getenv("BARK_DATABASE_URL"))
-
-	dbConfig, err := pgxpool.ParseConfig(os.Getenv("BARK_DATABASE_URL"))
+	dbConfig, err := pgxpool.ParseConfig(dbUrl)
 	if err != nil {
-		log.Fatal("Failed to create a config, error: ", err)
+		panic(fmt.Sprintf("Failed to create a config, error: %v", err))
 	}
 
 	dbConfig.MaxConns = defaultMaxConns

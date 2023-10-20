@@ -94,7 +94,7 @@ fi
 echo "Tagging"
 git tag -a $RELEASEVERSION -m "Release $RELEASEVERSION"
 echo "Pushing"
-git push origin refs/tags/$RELEASEVERSION
+git push -f origin refs/tags/$RELEASEVERSION
 
 # Run a Docker multi-platform build along with the push
 echo "Building the docker image for the release"

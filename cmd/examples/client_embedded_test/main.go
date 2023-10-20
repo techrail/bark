@@ -18,5 +18,11 @@ func main() {
 		log.Printf("1M2UBT - Default message - %v", i)
 	}
 
+	// Now we will disable the Debug printing
+	log.DisableDebugLogs()
+	log.Debug("1M7J7X - This message should not be saved")
+	log.EnableDebugLogs()
+	log.Debug("1M7J7Y - This message should be saved")
+
 	log.WaitAndEnd()
 }

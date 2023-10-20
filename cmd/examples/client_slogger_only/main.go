@@ -56,4 +56,11 @@ func main() {
 	log.Println(" ")
 
 	log.Println("1LPWC7 - Default message")
+
+	// Checking if disabling Debug logging works or not
+	log.DisableDebugLogs()
+	log.Debug("1M7J56 - This message should not be saved")
+	log.EnableDebugLogs()
+	log.Debug("1M7J59 - This message should be saved")
+
 }

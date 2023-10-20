@@ -28,13 +28,6 @@ fi
 
 if [ -z "$(git status --porcelain)" ]; then
   echo "Working directory clean (as it should be)"
-  echo "Pushing the code..."
-  git push origin main
-  if [ $? -ne 0 ]; then
-    echo "Something went wrong when running 'git push origin main'"
-    echo "Cannot continue."
-    return
-  fi
 else
   echo "Working directory is not clean. Cannot proceed"
   return 1
@@ -69,24 +62,28 @@ if [ $? -ne 0 ]; then
 fi
 
 # Now compile the codebase for all the specified targets. Output the resulting binaries into the newly created folder
+echo "Building for GOOS=linux GOARCH=arm64"
 GOOS=linux GOARCH=arm64 go build -o tmp/bark_release_$RELEASEVERSION/bark_${RELEASEVERSION}_linux_arm64 ./cmd/server
 if [ $? -ne 0 ]; then
   echo "Could not compile for linux/arm64"
   return 1
 fi
 
+echo "Building for GOOS=linux GOARCH=amd64"
 GOOS=linux GOARCH=amd64 go build -o tmp/bark_release_$RELEASEVERSION/bark_${RELEASEVERSION}_linux_amd64 ./cmd/server
 if [ $? -ne 0 ]; then
   echo "Could not compile for linux/amd64"
   return 1
 fi
 
+echo "Building for GOOS=darwin GOARCH=arm64"
 GOOS=darwin GOARCH=arm64 go build -o tmp/bark_release_$RELEASEVERSION/bark_${RELEASEVERSION}_macos_arm64 ./cmd/server
 if [ $? -ne 0 ]; then
   echo "Could not compile for darwin/arm64"
   return 1
 fi
 
+echo "Building for GOOS=darwin GOARCH=amd64"
 GOOS=darwin GOARCH=amd64 go build -o tmp/bark_release_$RELEASEVERSION/bark_${RELEASEVERSION}_macos_amd64 ./cmd/server
 if [ $? -ne 0 ]; then
   echo "Could not compile for darwin/amd64"

@@ -22,14 +22,15 @@ import (
 type webhook func(models.BarkLog) error
 
 type Config struct {
-	serverMode   int
-	BaseUrl      string
-	ErrorLevel   string
-	ServiceName  string
-	SessionName  string
-	BulkSend     bool
-	Slogger      *slog.Logger
-	AlertWebhook webhook
+	serverMode             int
+	disableDebugLvlLogging bool
+	BaseUrl                string
+	ErrorLevel             string
+	ServiceName            string
+	SessionName            string
+	BulkSend               bool
+	Slogger                *slog.Logger
+	AlertWebhook           webhook
 }
 
 // parseMessage extracts LMID (Log Message Identifier) if a valid LMID exists in message string otherwise.
@@ -291,6 +292,10 @@ func (c *Config) Info(message string) {
 
 // Debug sends a LvlDebug level log to server and prints the log if slog is enabled.
 func (c *Config) Debug(message string) {
+	if c.disableDebugLvlLogging {
+		return
+	}
+
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Debug
 	l.LogTime = time.Now().UTC()
@@ -306,6 +311,11 @@ func (c *Config) Debug(message string) {
 // and prints the log if slog is enabled.
 func (c *Config) Default(message string) {
 	l := c.parseMessage(message)
+
+	if c.disableDebugLvlLogging && l.LogLevel == DEBUG {
+		return
+	}
+
 	l.LogTime = time.Now().UTC()
 	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
@@ -334,6 +344,15 @@ func (c *Config) Default(message string) {
 
 // Raw allows user to send a RawLog to server.
 func (c *Config) Raw(rawLog RawLog, returnError bool) error {
+	if c.disableDebugLvlLogging && rawLog.LogLevel == DEBUG {
+		if returnError {
+			return fmt.Errorf("E#1M7ITZ - Debug logs have been disabled. Log won't be processed")
+		} else {
+			// return silently
+			return nil
+		}
+	}
+
 	// Try to parse the more data field
 	moreData, err := jsonObject.ToJsonObject(rawLog.MoreData)
 	if err != nil {
@@ -390,6 +409,11 @@ func (c *Config) Raw(rawLog RawLog, returnError bool) error {
 // This method prints the logs regardless if the slog is enabled or not.
 func (c *Config) Println(message string) {
 	l := c.parseMessage(message)
+
+	if c.disableDebugLvlLogging && l.LogLevel == DEBUG {
+		return
+	}
+
 	l.LogTime = time.Now().UTC()
 	l.MoreData = jsonObject.EmptyNotNullJsonObject()
 	c.dispatchLogMessage(l)
@@ -463,8 +487,20 @@ func (c *Config) Infof(message string, format ...any) {
 
 // Debugf performs the same operation as Config.Debug but it accepts a format specifier.
 func (c *Config) Debugf(message string, format ...any) {
+	if c.disableDebugLvlLogging {
+		return
+	}
+
 	message = fmt.Sprintf(message, format...)
 	c.Debug(message)
+}
+
+func (c *Config) DisableDebugLogs() {
+	c.disableDebugLvlLogging = true
+}
+
+func (c *Config) EnableDebugLogs() {
+	c.disableDebugLvlLogging = false
 }
 
 // SetAlertWebhook sets the function f to be used as a webhook to be used by Config.Alert method

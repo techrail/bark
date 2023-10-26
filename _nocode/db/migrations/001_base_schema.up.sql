@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS app_log
     log_time     TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE ('utc')),
     log_level    VARCHAR(16)                 NOT NULL DEFAULT 'info',
     service_name VARCHAR(64)                 NOT NULL DEFAULT 'def_svc',
-    sevice_instance_name VARCHAR(64)         NOT NULL DEFAULT 'def_svc_instance',
+    service_instance_name VARCHAR(64)         NOT NULL DEFAULT 'def_svc_instance',
     code         VARCHAR(16)                 NOT NULL DEFAULT '000000',
     msg          TEXT                        NOT NULL DEFAULT '_no_msg_supplied_',
     more_data    jsonb                       NOT NULL DEFAULT '{}'::jsonb

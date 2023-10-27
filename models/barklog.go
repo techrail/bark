@@ -113,12 +113,12 @@ func (bld *BarkLogDao) InsertServerStartedLog() error {
 }
 
 // InsertBatch sends a batch of logs to the DB.
-func (bld *BarkLogDao) InsertBatch(l []BarkLog) error {
-	batchOfBarkLog := [][]any{}
-	for i := 0; i < len(l); i++ {
-		batchElement := []any{l[i].LogTime, l[i].LogLevel, l[i].ServiceName, l[i].SessionName,
-			l[i].Code, l[i].Message, l[i].MoreData}
-		batchOfBarkLog = append(batchOfBarkLog, batchElement)
+func (bld *BarkLogDao) InsertBatch(l *[]BarkLog) error {
+	batchOfBarkLog := make([][]any, len(*l))
+	for i := 0; i < len(*l); i++ {
+		batchElement := []any{(*l)[i].LogTime, (*l)[i].LogLevel, (*l)[i].ServiceName, (*l)[i].SessionName,
+			(*l)[i].Code, (*l)[i].Message, (*l)[i].MoreData}
+		batchOfBarkLog[i] = batchElement
 	}
 
 	_, err := resources.BarkDb.Client.CopyFrom(context.Background(), pgx.Identifier{"app_log"},

@@ -1,7 +1,5 @@
 # Bark Client
 
-## IMPORTANT: It is not Yet Built
-
 ## What does the client do?
 The Bark client (just _client_ henceforth) is the _library_ side of the bark. It is the piece that takes in the logs from any golang program and sends it to the server which is configured against the client. It is supposed to have the utility functions to help users log to bark directly from go code without having to worry about network calls and such.
 
@@ -22,8 +20,8 @@ Any single character in the place of error level in a parsable single log messag
 The client can be initialized and used as follows (we explain the options below code sample):
 
 ```go
-barkClient := client.NewClient("<bark_server_url>", "<default_log_level>", "<default_service_name>", "<session_name>",
-"<enable_slog", "<enable_bulk_dispatch>")
+barkClient := client.NewClient("<bark_server_url>", "<default_log_level>", "<default_service_name>", "<session_name>", 
+    "<enable_slog", "<enable_bulk_dispatch>")
 
 barkClient.Panic("E#1LPW24 - Panic message")
 barkClient.Alert("E#1LPW25 - Alert message", false)
@@ -74,8 +72,7 @@ The above piece of code will end up printing something like the following (the d
 ```
 
 ## Printing logs to a file
-
-Bark client, as shown above, is capable of sending logs to a server as well as printing them to the standard output as well. It can also do both of those things simultaneously. The architecture in very simple representation looks like this: 
+Bark client, as shown above, is capable of sending logs to a server as well as printing them to the standard output as well. It can also do both of those things simultaneously. The architecture in very simple representation looks like this:
 
 ![barkslogger.svg](../_nocode/images/barkslogger.svg)
 
@@ -101,11 +98,7 @@ The above code will write the output to `random.txt` file. You can expect the fi
 2023/10/18 19:27:51 INFO Some Message that'll be sent to random.txt file
 ```
 
-<<<<<<< HEAD
 ### Slog and writing to a file
-=======
-### Slog and writing to a file 
->>>>>>> 4eb520da8943d4fb59197e963cb418c06a8467ba
 
 Bark client uses [slog](https://go.dev/blog/slog) internally to handle the printing of the logs. Slog is a simple and structured logging library that comes with Go (version 1.21+).
 
@@ -158,7 +151,7 @@ If you add a nil options, the log labels will appear as described in the [slog d
 > LevelDebug Level = -4 \
 > LevelInfo  Level = 0 \
 > LevelWarn  Level = 4 \
-> LevelError Level = 8 \
+> LevelError Level = 8 
 
 The custom log levels defined by bark client have the following values:
 

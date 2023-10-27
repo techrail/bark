@@ -27,7 +27,7 @@ type Config struct {
 	BaseUrl                string
 	ErrorLevel             string
 	ServiceName            string
-	SessionName            string
+	ServiceInstanceName    string
 	BulkSend               bool
 	Slogger                *slog.Logger
 	AlertWebhook           webhook
@@ -36,8 +36,8 @@ type Config struct {
 // parseMessage extracts LMID (Log Message Identifier) if a valid LMID exists in message string otherwise.
 func (c *Config) parseMessage(msg string) models.BarkLog {
 	l := models.BarkLog{
-		ServiceName: c.ServiceName,
-		SessionName: c.SessionName,
+		ServiceName:         c.ServiceName,
+		ServiceInstanceName: c.ServiceInstanceName,
 	}
 
 	if len(msg) < 6 {
@@ -368,13 +368,13 @@ func (c *Config) Raw(rawLog RawLog, returnError bool) error {
 	}
 
 	l := models.BarkLog{
-		LogTime:     rawLog.LogTime,
-		LogLevel:    rawLog.LogLevel,
-		ServiceName: rawLog.ServiceName,
-		SessionName: rawLog.SessionName,
-		Code:        rawLog.Code,
-		Message:     rawLog.Message,
-		MoreData:    moreData,
+		LogTime:             rawLog.LogTime,
+		LogLevel:            rawLog.LogLevel,
+		ServiceName:         rawLog.ServiceName,
+		ServiceInstanceName: rawLog.ServiceInstanceName,
+		Code:                rawLog.Code,
+		Message:             rawLog.Message,
+		MoreData:            moreData,
 	}
 
 	c.dispatchLogMessage(l)
@@ -520,13 +520,13 @@ func NewSloggerClient(defaultLogLevel string) *Config {
 	slogger := newSlogger(os.Stdout)
 
 	return &Config{
-		serverMode:  constants.ClientServerUsageModeDisabled,
-		BaseUrl:     constants.DisabledServerUrl,
-		ErrorLevel:  defaultLogLevel,
-		ServiceName: "",
-		SessionName: "",
-		Slogger:     slogger,
-		BulkSend:    false,
+		serverMode:          constants.ClientServerUsageModeDisabled,
+		BaseUrl:             constants.DisabledServerUrl,
+		ErrorLevel:          defaultLogLevel,
+		ServiceName:         "",
+		ServiceInstanceName: "",
+		Slogger:             slogger,
+		BulkSend:            false,
 	}
 }
 
@@ -545,7 +545,7 @@ func NewSloggerClient(defaultLogLevel string) *Config {
 // string. If an empty string is given, the function will print a warning message and use
 // constants.DefaultLogServiceName as the default value.
 //
-// The sessName parameter is the name of the session that is logging. It must be a non-empty
+// The svcInstName parameter is the name of the service instance that is logging. It must be a non-empty
 // string. If an empty string is given, the function will print a warning message and use
 // appRuntime.SessionName as the default value.
 //
@@ -557,20 +557,20 @@ func NewSloggerClient(defaultLogLevel string) *Config {
 // of logs to the remote server. If true, the function will start a goroutine that periodically
 // sends all the buffered logs to the server. If false, the logs will be sent individually as
 // they are generated.
-func NewClient(url, defaultLogLvl, svcName, sessName string, enableSlog bool, enableBulkSend bool) *Config {
+func NewClient(url, defaultLogLvl, svcName, svcInstName string, enableSlog bool, enableBulkSend bool) *Config {
 	if !isValid(defaultLogLvl) {
 		fmt.Printf("L#1LPYG2 - %v is not an acceptable log level. %v will be used as the default log level", defaultLogLvl, constants.DefaultLogLevel)
 		defaultLogLvl = constants.DefaultLogLevel
 	}
 
 	if strings.TrimSpace(svcName) == "" {
-		sessName = constants.DefaultLogServiceName
-		fmt.Printf("L#1L3WBF - Blank service name supplied. Using %v as Session Name", sessName)
+		svcName = constants.DefaultLogServiceName
+		fmt.Printf("L#1L3WBF - Blank service name supplied. Using %v as Service Name", svcName)
 	}
 
-	if strings.TrimSpace(sessName) == "" {
-		sessName = appRuntime.SessionName
-		fmt.Printf("L#1L3WBF - Blank session name supplied. Using %v as Session Name", sessName)
+	if strings.TrimSpace(svcInstName) == "" {
+		svcInstName = appRuntime.SessionName
+		fmt.Printf("L#1L3WBF - Blank instance name supplied. Using %v as Service Instance Name", svcInstName)
 	}
 
 	//Wg.Add(1)
@@ -588,13 +588,13 @@ func NewClient(url, defaultLogLvl, svcName, sessName string, enableSlog bool, en
 	}
 
 	return &Config{
-		serverMode:  constants.ClientServerUsageModeRemoteServer,
-		BaseUrl:     url,
-		ErrorLevel:  defaultLogLvl,
-		ServiceName: svcName,
-		SessionName: sessName,
-		Slogger:     slogger,
-		BulkSend:    enableBulkSend,
+		serverMode:          constants.ClientServerUsageModeRemoteServer,
+		BaseUrl:             url,
+		ErrorLevel:          defaultLogLvl,
+		ServiceName:         svcName,
+		ServiceInstanceName: svcInstName,
+		Slogger:             slogger,
+		BulkSend:            enableBulkSend,
 	}
 }
 
@@ -613,27 +613,27 @@ func NewClient(url, defaultLogLvl, svcName, sessName string, enableSlog bool, en
 // string. If an empty string is given, the function will print a warning message and use
 // constants.DefaultLogServiceName as the default value.
 //
-// The sessName parameter is the name of the session that is logging. It must be a non-empty
+// The svcInstName parameter is the name of the service instance that is logging. It must be a non-empty
 // string. If an empty string is given, the function will print a warning message and use
 // appRuntime.SessionName as the default value.
 //
 // The enableSlog parameter is a boolean flag that indicates whether to enable slog logging
 // to standard output. If true, the function will create and assign a new slog.Logger object
 // to the Config object. If false, the Config object will have a nil Slogger field.
-func NewClientWithServer(dbUrl, defaultLogLvl, svcName, sessName string, enableSlog bool) *Config {
+func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
 	if !isValid(defaultLogLvl) {
 		fmt.Printf("L#1M1XXN - %v is not an acceptable log level. %v will be used as the default log level", defaultLogLvl, constants.DefaultLogLevel)
 		defaultLogLvl = constants.DefaultLogLevel
 	}
 
 	if strings.TrimSpace(svcName) == "" {
-		sessName = constants.DefaultLogServiceName
-		fmt.Printf("L#1M1XY9 - Blank service name supplied. Using %v as Session Name", sessName)
+		svcName = constants.DefaultLogServiceName
+		fmt.Printf("L#1M1XY9 - Blank service name supplied. Using %v as Service Name", svcName)
 	}
 
-	if strings.TrimSpace(sessName) == "" {
-		sessName = appRuntime.SessionName
-		fmt.Printf("L#1M1XZH - Blank session name supplied. Using %v as Session Name", sessName)
+	if strings.TrimSpace(svcInstName) == "" {
+		svcInstName = appRuntime.SessionName
+		fmt.Printf("L#1M1XZH - Blank instance name supplied. Using %v as Service Instance Name", svcInstName)
 	}
 
 	var slogger *slog.Logger
@@ -665,13 +665,13 @@ func NewClientWithServer(dbUrl, defaultLogLvl, svcName, sessName string, enableS
 	go dbLogWriter.KeepSavingLogs()
 
 	return &Config{
-		serverMode:  constants.ClientServerUsageModeEmbedded,
-		BaseUrl:     constants.DisabledServerUrl,
-		ErrorLevel:  defaultLogLvl,
-		ServiceName: svcName,
-		SessionName: sessName,
-		Slogger:     slogger,
-		BulkSend:    false,
+		serverMode:          constants.ClientServerUsageModeEmbedded,
+		BaseUrl:             constants.DisabledServerUrl,
+		ErrorLevel:          defaultLogLvl,
+		ServiceName:         svcName,
+		ServiceInstanceName: svcInstName,
+		Slogger:             slogger,
+		BulkSend:            false,
 	}
 }
 

@@ -80,7 +80,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"id\": -100,\n    \"logLevel\": \"info\",\n    \"serviceName\": \"TestPostman\",\n    \"sessionName\": \"testSession\",\n    \"code\": \"1KE0H8\",\n    \"msg\": \"Shows up in DB or not?\",\n    \"moreData\": {\n        \"name\":\"vaibhav\"\n    }\n}",
+					"raw": "{\n    \"id\": -100,\n    \"logLevel\": \"info\",\n    \"serviceName\": \"TestPostman\",\n    \"serviceInstanceName\": \"testSession\",\n    \"code\": \"1KE0H8\",\n    \"msg\": \"Shows up in DB or not?\",\n    \"moreData\": {\n        \"name\":\"vaibhav\"\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -111,7 +111,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "[\n    {\n        \"code\": \"1KE0H8\"\n    },\n    {\n        \"msg\": \"Shows up in DB or not?\"\n    },\n    {\n        \"serviceName\": \"TestPostman\",\n        \"sessionName\": \"testSession\",\n        \"code\": \"1KE0H9\",\n        \"msg\": \"Shows up in DB or not?\",\n        \"moreData\": {\n            \"name\": \"vaibhav\"\n        }\n    },\n    {\n        \"logLevel\": \"error\",\n        \"sessionName\": \"testSession\",\n        \"code\": \"1KE0I1\",\n        \"msg\": \"Shows up in DB or not?\",\n        \"moreData\": {\n            \"name\": \"vaibhav\"\n        }\n    },\n    {\n        \"logLevel\": \"info\",\n        \"serviceName\": \"TestPostman\",\n        \"sessionName\": \"testSession\",\n        \"code\": \"1KE0I2\",\n        \"msg\": \"Shows up in DB or not?\",\n        \"moreData\": {\n            \"name\": \"vaibhav\"\n        }\n    },\n    {\n        \"logLevel\": \"info\",\n        \"serviceName\": \"TestPostman\",\n        \"sessionName\": \"testSession\",\n        \"code\": \"1KE0I3\",\n        \"msg\": \"Shows up in DB or not?\"\n    },\n    {\n        \"logLevel\": \"info\",\n        \"serviceName\": \"TestPostman\",\n        \"sessionName\": \"testSession\"\n    }\n]",
+					"raw": "[\n    {\n        \"code\": \"1KE0H8\"\n    },\n    {\n        \"msg\": \"Shows up in DB or not?\"\n    },\n    {\n        \"serviceName\": \"TestPostman\",\n        \"serviceInstanceName\": \"testSession\",\n        \"code\": \"1KE0H9\",\n        \"msg\": \"Shows up in DB or not?\",\n        \"moreData\": {\n            \"name\": \"vaibhav\"\n        }\n    },\n    {\n        \"logLevel\": \"error\",\n        \"serviceInstanceName\": \"testSession\",\n        \"code\": \"1KE0I1\",\n        \"msg\": \"Shows up in DB or not?\",\n        \"moreData\": {\n            \"name\": \"vaibhav\"\n        }\n    },\n    {\n        \"logLevel\": \"info\",\n        \"serviceName\": \"TestPostman\",\n        \"serviceInstanceName\": \"testSession\",\n        \"code\": \"1KE0I2\",\n        \"msg\": \"Shows up in DB or not?\",\n        \"moreData\": {\n            \"name\": \"vaibhav\"\n        }\n    },\n    {\n        \"logLevel\": \"info\",\n        \"serviceName\": \"TestPostman\",\n        \"serviceInstanceName\": \"testSession\",\n        \"code\": \"1KE0I3\",\n        \"msg\": \"Shows up in DB or not?\"\n    },\n    {\n        \"logLevel\": \"info\",\n        \"serviceName\": \"TestPostman\",\n        \"serviceInstanceName\": \"testSession\"\n    }\n]",
 					"options": {
 						"raw": {
 							"language": "json"

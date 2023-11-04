@@ -22,8 +22,8 @@ Any single character in the place of error level in a parsable single log messag
 The client can be initialized and used as follows (we explain the options below code sample):
 
 ```go
-barkClient := client.NewClient("<bark_server_url>", "<default_log_level>", "<default_service_name>", "<session_name>",
-"<enable_slog", "<enable_bulk_dispatch>")
+barkClient := client.NewClient("<bark_server_url>", "<default_log_level>", "<default_service_name>", "<service_instance_name>", 
+    "<enable_slog", "<enable_bulk_dispatch>")
 
 barkClient.Panic("E#1LPW24 - Panic message")
 barkClient.Alert("E#1LPW25 - Alert message", false)
@@ -41,7 +41,7 @@ The options that are used for initializing the client are as follows:
 - **bark_server_url**: This is the URL of a running bark server. It must end in `/`. For example `http://bark.example.com/` or `http://127.0.0.1:8080/`
 - **default_log_level**: When you use `Println` or `Default`, the log message is parsed (rules for prasing are described [here](../_nocode/docs/log-string-parsing-in-bark.md)) and if it does not contain any indication for what the log level is, then the value supplied in this field is used as the log level for sent log message. When using dedicated methods for error levels (e.g. `Panic`, `Error` etc.), the parsed error level is overwritten.
 - **default_service_name**: This is the name of the service which is sending the log - so it has to be the name of the program or service which is calling it. In case a blank string is sent, the value against `constants.DefaultLogServiceName` (currently set to `def_svc`) is used.
-- **session_name**: This is the name of the calling app's session. This value is supposed to indicate which instance among possibly multiple instances of a service sent a log message. For example, in case of the service being deployed within Kubernetes, it might indicate the service's pod's name. If the value is sent as a blank string, client will try to use the machine's hostname. If it fails to fetch the hostname, a random string will be used instead.
+- **service_instance_name**: This is the name of the calling app's session. This value is supposed to indicate which instance among possibly multiple instances of a service sent a log message. For example, in case of the service being deployed within Kubernetes, it might indicate the service's pod's name. If the value is sent as a blank string, client will try to use the machine's hostname. If it fails to fetch the hostname, a random string will be used instead.
 - **enable_slog**: This enables [slog](https://go.dev/blog/slog) for the client. When this option is enabled, all logs in addition to being sent to the bark server is also printed on STDOUT of the service.
 - **enable_bulk_dispatch**: Setting this to true would enable the client to push all the requests being received in a channel and start using it. It improves the overall performance of the client sending log entries to the server.
 
@@ -74,8 +74,7 @@ The above piece of code will end up printing something like the following (the d
 ```
 
 ## Printing logs to a file
-
-Bark client, as shown above, is capable of sending logs to a server as well as printing them to the standard output as well. It can also do both of those things simultaneously. The architecture in very simple representation looks like this: 
+Bark client, as shown above, is capable of sending logs to a server as well as printing them to the standard output as well. It can also do both of those things simultaneously. The architecture in very simple representation looks like this:
 
 ![barkslogger.svg](../_nocode/images/barkslogger.svg)
 
@@ -101,11 +100,7 @@ The above code will write the output to `random.txt` file. You can expect the fi
 2023/10/18 19:27:51 INFO Some Message that'll be sent to random.txt file
 ```
 
-<<<<<<< HEAD
 ### Slog and writing to a file
-=======
-### Slog and writing to a file 
->>>>>>> 4eb520da8943d4fb59197e963cb418c06a8467ba
 
 Bark client uses [slog](https://go.dev/blog/slog) internally to handle the printing of the logs. Slog is a simple and structured logging library that comes with Go (version 1.21+).
 

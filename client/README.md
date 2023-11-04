@@ -73,6 +73,36 @@ The above piece of code will end up printing something like the following (the d
 2023/10/15 21:57:41 INFO Println message
 ```
 
+### Printing logs in JSON format
+If you want the logs to be printed in JSON format you can use `NewClientWithJSONSlogger` method from a client as shown below,
+
+
+```go
+log := client.NewClientWithJSONSlogger("http://127.0.0.1:8080/", "INFO", "BarkClientFileTest", "TestClientSession", false)
+
+log.Info("1N09FW - This is an Info message!")
+log.Debug("1N09GG - This is an Debug message!")
+log.Warn("1N09H5 - This is an Warn message!")
+log.Notice("1N09HL - This is an Notice message!")
+log.Error("1N09HT - This is an Error message!")
+log.Panic("1N09I7 - This is an Panic message!")
+log.Alert("1N09IG - This is an Alert message!", false)
+log.Default("I#1N09JH - This is an Default message!")
+log.Println("D#1N09JR - This is an Print message!")
+```
+The above piece of code will end up printing something like the following (the dates in the beginning of each line will vary):
+```
+{"time":"2023-11-04T20:35:35.0472358+05:30","level":"INFO","msg":"1N09FW - This is an Info message!"}
+{"time":"2023-11-04T20:35:35.0510558+05:30","level":"DEBUG","msg":"1N09GG - This is an Debug message!"}   
+{"time":"2023-11-04T20:35:35.0572919+05:30","level":"WARN","msg":"1N09H5 - This is an Warn message!"}     
+{"time":"2023-11-04T20:35:35.0578286+05:30","level":"NOTICE","msg":"1N09HL - This is an Notice message!"} 
+{"time":"2023-11-04T20:35:35.0580332+05:30","level":"ERROR","msg":"1N09HT - This is an Error message!"}   
+{"time":"2023-11-04T20:35:35.0586284+05:30","level":"PANIC","msg":"1N09I7 - This is an Panic message!"}   
+{"time":"2023-11-04T20:35:35.0586284+05:30","level":"ALERT","msg":"1N09IG - This is an Alert message!"}   
+{"time":"2023-11-04T20:35:35.0591469+05:30","level":"INFO","msg":"I#1N09JH - This is an Default message!"}
+{"time":"2023-11-04T20:35:35.059302+05:30","level":"DEBUG","msg":"D#1N09JR - This is an Default message!"}
+```
+
 ## Printing logs to a file
 Bark client, as shown above, is capable of sending logs to a server as well as printing them to the standard output as well. It can also do both of those things simultaneously. The architecture in very simple representation looks like this:
 
@@ -131,9 +161,9 @@ func main() {
 
 	// We are using JSONHandler here so the line that will be logged will actually be a JSON string
 	log.SetSlogHandler(slog.NewJSONHandler(file, client.SlogHandlerOptions()))
+	
 	// If you want to log to STDOUT, you can use `os.Stdout` in place of the `file` as writer 
-	// Of course in case that you would have  remove the unused code from above.
-
+	// Of course in case that you would have removed the unused code from above.
 	log.Info("Some Message that'll be sent to random.txt file")
 	log.WaitAndEnd()
 }
@@ -153,7 +183,7 @@ If you add a nil options, the log labels will appear as described in the [slog d
 > LevelDebug Level = -4 \
 > LevelInfo  Level = 0 \
 > LevelWarn  Level = 4 \
-> LevelError Level = 8 \
+> LevelError Level = 8
 
 The custom log levels defined by bark client have the following values:
 

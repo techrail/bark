@@ -675,20 +675,11 @@ func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enab
 	}
 }
 
-// NewClientWithJSONSlogger returns a Config object that will print logs to stdout in JSON format.
-// *Config returned by NewClientWithJSONSlogger behaves the same as NewClient, but it prints the logs in JSON.
-// NewClientWithJSONSlogger accepts the same parameters as NewClient except enableSlog as it is enabled by default.
-func NewClientWithJSONSlogger(url, defaultLogLvl, svcName, svcInstName string, enableBulkSend bool) *Config {
-	client := NewClient(url, defaultLogLvl, svcName, svcInstName, true, enableBulkSend)
-	client.SetSlogHandler(slog.NewJSONHandler(os.Stdout, SlogHandlerOptions()))
-	return client
-}
-
-// NewClientWithServerAndJSONSlogger returns a Config object that will print logs to stdout in JSON format.
-// *Config returned by NewClientWithJSONSlogger behaves the same as NewClientWithServer, but it prints the logs in JSON.
-// NewClientWithServerAndJSONSlogger accepts the same parameters as NewClientWithServer except enableSlog as it is enabled by default.
-func NewClientWithServerAndJSONSlogger(dbUrl, defaultLogLvl, svcName, svcInstName string) *Config {
-	client := NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName, true)
+// NewSloggerClientJson returns a Config object that will print logs to stdout in JSON format.
+// *Config returned by NewSloggerClientJson behaves the same as NewSloggerClient, but it prints the logs in JSON.
+// NewClientWithJSONSlogger accepts the same parameters as NewSloggerClient.
+func NewSloggerClientJson(defaultLogLvl string) *Config {
+	client := NewSloggerClient(defaultLogLvl)
 	client.SetSlogHandler(slog.NewJSONHandler(os.Stdout, SlogHandlerOptions()))
 	return client
 }

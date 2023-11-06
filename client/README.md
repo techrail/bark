@@ -74,12 +74,11 @@ The above piece of code will end up printing something like the following (the d
 ```
 
 ### Printing logs in JSON format
-If you want the logs to be printed in JSON format you can use `NewClientWithJSONSlogger` method from a client as shown below,
+If you just want the logs to be printed in JSON format you can use `NewSloggerClientJson` method from a client as shown below,
 
 
 ```go
-log := client.NewClientWithJSONSlogger("http://127.0.0.1:8080/", "INFO", "BarkClientFileTest", "TestClientSession", false)
-
+log := client.NewSloggerClientJson(constants.Info)
 log.Info("1N09FW - This is an Info message!")
 log.Debug("1N09GG - This is an Debug message!")
 log.Warn("1N09H5 - This is an Warn message!")

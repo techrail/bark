@@ -1,9 +1,12 @@
 package main
 
-import "github.com/techrail/bark/client"
+import (
+	"github.com/techrail/bark/client"
+	"github.com/techrail/bark/constants"
+)
 
 func main() {
-	log := client.NewClientWithJSONSlogger("http://127.0.0.1:8080/", "INFO", "BarkClientFileTest", "TestClientSession", false)
+	log := client.NewSloggerClientJson(constants.Info)
 	log.Info("1N09FW - This is an Info message!")
 	log.Debug("1N09GG - This is an Debug message!")
 	log.Warn("1N09H5 - This is an Warn message!")
@@ -13,5 +16,4 @@ func main() {
 	log.Alert("1N09IG - This is an Alert message!", false)
 	log.Default("I#1N09JH - This is an Default message!")
 	log.Println("D#1N09JR - This is an Print message!")
-	log.WaitAndEnd()
 }

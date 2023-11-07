@@ -675,6 +675,15 @@ func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enab
 	}
 }
 
+// NewSloggerClientJson returns a Config object that will print logs to stdout in JSON format.
+// *Config returned by NewSloggerClientJson behaves the same as NewSloggerClient, but it prints the logs in JSON.
+// NewClientWithJSONSlogger accepts the same parameters as NewSloggerClient.
+func NewSloggerClientJson(defaultLogLvl string) *Config {
+	client := NewSloggerClient(defaultLogLvl)
+	client.SetSlogHandler(slog.NewJSONHandler(os.Stdout, SlogHandlerOptions()))
+	return client
+}
+
 // SetCustomOut allows users to set output to custom writer instead of the default standard output
 func (c *Config) SetCustomOut(out io.Writer) {
 	c.Slogger = newSlogger(out)

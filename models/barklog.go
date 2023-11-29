@@ -130,3 +130,36 @@ func (bld *BarkLogDao) InsertBatch(l []BarkLog) error {
 
 	return nil
 }
+
+func (bld *BarkLogDao) FetchLogs(logLevel, serviceName, sessionName, startDate, endDate string) ([]BarkLog, error) {
+	query := "SELECT * FROM logs WHERE 1=1" // Base query
+	if logLevel != "" {
+		query += fmt.Sprintf(" AND log_level = '%s'", logLevel)
+	}
+	if serviceName != "" {
+		query += fmt.Sprintf(" AND service_name = '%s'", serviceName)
+	}
+	if sessionName != "" {
+		query += fmt.Sprintf(" AND session_name = '%s'", sessionName)
+	}
+	if startDate != "" {
+		query += fmt.Sprintf(" AND log_time >= '%s'", startDate)
+	}
+	if endDate != "" {
+		query += fmt.Sprintf(" AND log_time <= '%s'", endDate)
+	}
+	rows, err := resources.BarkDb.Client.Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	logs := make([]BarkLog, 0)
+	for rows.Next() {
+		var log BarkLog
+		if err := rows.Scan(&log.Id, &log.LogTime, &log.LogLevel, &log.ServiceName, &log.SessionName, &log.Code, &log.Message, &log.MoreData); err != nil {
+			return nil, err
+		}
+		logs = append(logs, log)
+	}
+	return logs, nil
+}

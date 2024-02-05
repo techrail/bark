@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/techrail/bark/internal/jsonObject"
 	"github.com/techrail/bark/resources"
 	"github.com/techrail/bark/services/dbLogWriter"
 	"github.com/techrail/bark/services/ingestion"
-	"github.com/techrail/bark/typs/jsonObject"
 	"github.com/techrail/bark/utils"
 	"io"
 	"log/slog"

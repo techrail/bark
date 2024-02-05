@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/techrail/bark/appRuntime"
-	"github.com/techrail/bark/typs/jsonObject"
+	"github.com/techrail/bark/internal/jsonObject"
 	"strings"
 	"time"
 

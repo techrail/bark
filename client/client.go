@@ -600,12 +600,16 @@ func NewClient(url, defaultLogLvl, svcName, svcInstName string, enableSlog bool,
 }
 
 // NewClientWithServer returns a client config which performs the job of the server as well.
-// It is a wrapper around NewClientWithServerWithSchema with schema name set to a blank string
+// It is a wrapper around NewDirectToDbClientCustomSchemaTable with schema name set to a blank string
 func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
-	return NewClientWithServerWithSchema(dbUrl, "", "", defaultLogLvl, svcName, svcInstName, enableSlog)
+	return NewDirectToDbClient(dbUrl, defaultLogLvl, svcName, svcInstName, enableSlog)
 }
 
-// NewClientWithServerWithSchema returns a client config which performs the job of the server as well
+func NewDirectToDbClient(dbUrl, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
+	return NewDirectToDbClientCustomSchemaTable(dbUrl, "", "", defaultLogLvl, svcName, svcInstName, enableSlog)
+}
+
+// NewDirectToDbClientCustomSchemaTable returns a client config which performs the job of the server as well
 // It differs from NewClient in two main ways: it does not have the option to do bulk inserts (they are not needed)
 // and it accepts the database URL instead of server URL.
 //
@@ -614,6 +618,9 @@ func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enab
 //
 // The schemaName is the name of the schema (optional) where the postgresql table resides.
 // If the table is accessible without a schema name using the dbUrl connection, this can be left blank.
+//
+// The tableName is the name of the table where the logs are to be stored.
+// This is supposed to be set if your table is named anything other than `app_log`.
 //
 // The defaultLogLvl parameter is the log level for logging. It must be one of the constants
 // defined in the constants package, such as INFO, WARN, ERROR, etc. If an invalid value
@@ -630,7 +637,7 @@ func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enab
 // The enableSlog parameter is a boolean flag that indicates whether to enable slog logging
 // to standard output. If true, the function will create and assign a new slog.Logger object
 // to the Config object. If false, the Config object will have a nil Slogger field.
-func NewClientWithServerWithSchema(dbUrl, schemaName, tableName, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
+func NewDirectToDbClientCustomSchemaTable(dbUrl, schemaName, tableName, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
 	if !isValid(defaultLogLvl) {
 		fmt.Printf("L#1M1XXN - %v is not an acceptable log level. %v will be used as the default log level", defaultLogLvl, constants.DefaultLogLevel)
 		defaultLogLvl = constants.DefaultLogLevel

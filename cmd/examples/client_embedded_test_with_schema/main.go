@@ -12,7 +12,7 @@ func main() {
 		fmt.Println("This")
 		return
 	}
-	log := client.NewClientWithServerWithSchema("postgres://vaibhav:vaibhav@127.0.0.1:5432/bark", "audit", "INFO", "brktest", "load test session", false)
+	log := client.NewClientWithServerWithSchema("postgres://vaibhav:vaibhav@127.0.0.1:5432/bark", "audit", "", "INFO", "brktest", "load test session", false)
 
 	for i := 0; i < 500; i++ {
 		log.Printf("20JFH1 - schema default message - %v", i)

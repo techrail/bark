@@ -602,7 +602,7 @@ func NewClient(url, defaultLogLvl, svcName, svcInstName string, enableSlog bool,
 // NewClientWithServer returns a client config which performs the job of the server as well.
 // It is a wrapper around NewClientWithServerWithSchema with schema name set to a blank string
 func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
-	return NewClientWithServerWithSchema(dbUrl, "", defaultLogLvl, svcName, svcInstName, enableSlog)
+	return NewClientWithServerWithSchema(dbUrl, "", "", defaultLogLvl, svcName, svcInstName, enableSlog)
 }
 
 // NewClientWithServerWithSchema returns a client config which performs the job of the server as well
@@ -630,7 +630,7 @@ func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enab
 // The enableSlog parameter is a boolean flag that indicates whether to enable slog logging
 // to standard output. If true, the function will create and assign a new slog.Logger object
 // to the Config object. If false, the Config object will have a nil Slogger field.
-func NewClientWithServerWithSchema(dbUrl, schemaName, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
+func NewClientWithServerWithSchema(dbUrl, schemaName, tableName, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
 	if !isValid(defaultLogLvl) {
 		fmt.Printf("L#1M1XXN - %v is not an acceptable log level. %v will be used as the default log level", defaultLogLvl, constants.DefaultLogLevel)
 		defaultLogLvl = constants.DefaultLogLevel
@@ -647,6 +647,7 @@ func NewClientWithServerWithSchema(dbUrl, schemaName, defaultLogLvl, svcName, sv
 	}
 
 	config.SetDbSchemaName(schemaName)
+	config.SetDbTableName(tableName)
 
 	var slogger *slog.Logger
 

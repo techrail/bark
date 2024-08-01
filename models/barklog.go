@@ -78,7 +78,7 @@ func NewBarkLogDao() *BarkLogDao {
 // Insert inserts a Bark log in the database
 func (bld *BarkLogDao) Insert(l BarkLog) error {
 	query := fmt.Sprintf(`
-	INSERT INTO %vapp_log (
+	INSERT INTO %v%v (
 		log_time, log_level, service_name,
 		service_instance_name, code, msg, 
         more_data
@@ -87,11 +87,11 @@ func (bld *BarkLogDao) Insert(l BarkLog) error {
 	    $1, $2, $3,
 	    $4, $5, $6,
 	    $7
-	)`, config.DbSchemaNameWithDot)
+	)`, config.DbSchemaNameWithDot, config.DbTableName)
 
-	fmt.Println("------------------")
-	fmt.Println(query)
-	fmt.Println("------------------")
+	//fmt.Println("------------------")
+	//fmt.Println(query)
+	//fmt.Println("------------------")
 
 	_, err := resources.BarkDb.Client.Exec(context.Background(), query, l.LogTime, l.LogLevel, l.ServiceName,
 		l.ServiceInstanceName, l.Code, l.Message,
@@ -127,13 +127,13 @@ func (bld *BarkLogDao) InsertBatch(l []BarkLog) error {
 	}
 
 	if config.DbSchemaName == "" {
-		_, err := resources.BarkDb.Client.CopyFrom(context.Background(), pgx.Identifier{"app_log"},
+		_, err := resources.BarkDb.Client.CopyFrom(context.Background(), pgx.Identifier{config.DbTableName},
 			[]string{"log_time", "log_level", "service_name", "service_instance_name", "code", "msg", "more_data"}, pgx.CopyFromRows(batchOfBarkLog))
 		if err != nil {
 			return fmt.Errorf("E#1KSPLS - error while inserting batch: %w", err)
 		}
 	} else {
-		_, err := resources.BarkDb.Client.CopyFrom(context.Background(), pgx.Identifier{config.DbSchemaName, "app_log"},
+		_, err := resources.BarkDb.Client.CopyFrom(context.Background(), pgx.Identifier{config.DbSchemaName, config.DbTableName},
 			[]string{"log_time", "log_level", "service_name", "service_instance_name", "code", "msg", "more_data"}, pgx.CopyFromRows(batchOfBarkLog))
 		if err != nil {
 			return fmt.Errorf("E#20JFGC - error while inserting batch: %w", err)

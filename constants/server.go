@@ -12,7 +12,7 @@ const (
 	DefaultLogLevel       = "INFO"
 	DefaultLogMessage     = "_no_msg_supplied_"
 	DefaultLogServiceName = "def_svc"
-	DefaultLogSessionName = "def_sess"
+	DefaultLogSessionName = "def_svc_instance"
 )
 
 const (

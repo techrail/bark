@@ -5,11 +5,11 @@ import (
 )
 
 type RawLog struct {
-	LogTime     time.Time
-	LogLevel    string
-	ServiceName string
-	SessionName string
-	Code        string
-	Message     string
-	MoreData    any
+	LogTime             time.Time
+	LogLevel            string
+	ServiceName         string
+	ServiceInstanceName string
+	Code                string
+	Message             string
+	MoreData            any
 }

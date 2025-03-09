@@ -66,13 +66,13 @@ func main() {
 	log.Println("1LPWC7 - Default message")
 
 	_ = log.Raw(client.RawLog{
-		LogTime:     time.Now().UTC(),
-		LogLevel:    "INFO",
-		ServiceName: "Bark Test",
-		SessionName: "TestSessionWait1",
-		Code:        "1M2U4J",
-		Message:     "Testing raw log",
-		MoreData:    nil,
+		LogTime:             time.Now().UTC(),
+		LogLevel:            "INFO",
+		ServiceName:         "Bark Test",
+		ServiceInstanceName: "TestSessionWait1",
+		Code:                "1M2U4J",
+		Message:             "Testing raw log",
+		MoreData:            nil,
 	}, false)
 
 	log.WaitAndEnd()

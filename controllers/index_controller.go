@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	`encoding/json`
-	`time`
+	"encoding/json"
+	"time"
 
-	`github.com/valyala/fasthttp`
+	"github.com/valyala/fasthttp"
 
-	`github.com/techrail/bark/constants`
+	"github.com/techrail/bark/constants"
 )
 
 type indexInfo struct {
@@ -23,6 +23,7 @@ func IndexController(ctx *fasthttp.RequestCtx) {
 	}
 
 	iJson, err := json.Marshal(i)
+	print(iJson)
 	if err != nil {
 		_, _ = ctx.WriteString("Welcome to Bark! If you are seeing this message, please contact the site admin.")
 		return

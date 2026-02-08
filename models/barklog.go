@@ -3,10 +3,10 @@ package models
 import (
 	"context"
 	"fmt"
-	"github.com/techrail/bark/appRuntime"
-	"github.com/techrail/bark/typs/jsonObject"
 	"strings"
 	"time"
+
+	"github.com/techrail/bark/appRuntime"
 
 	"github.com/jackc/pgx/v5"
 
@@ -16,14 +16,14 @@ import (
 
 // BarkLog is a struct representing a log in Bark
 type BarkLog struct {
-	Id                  int64          `db:"id" json:"id"`
-	LogTime             time.Time      `db:"log_time" json:"logTime"`
-	LogLevel            string         `db:"log_level" json:"logLevel"`
-	ServiceName         string         `db:"service_name" json:"serviceName"`
-	ServiceInstanceName string         `db:"service_instance_name" json:"serviceInstanceName"`
-	Code                string         `db:"code" json:"code"`
-	Message             string         `db:"msg" json:"msg"`
-	MoreData            jsonObject.Typ `db:"more_data" json:"moreData"`
+	Id                  int64     `db:"id" json:"id"`
+	LogTime             time.Time `db:"log_time" json:"logTime"`
+	LogLevel            string    `db:"log_level" json:"logLevel"`
+	ServiceName         string    `db:"service_name" json:"serviceName"`
+	ServiceInstanceName string    `db:"service_instance_name" json:"serviceInstanceName"`
+	Code                string    `db:"code" json:"code"`
+	Message             string    `db:"msg" json:"msg"`
+	MoreData            string    `db:"more_data" json:"moreData"` // Should be JSON but is not enforced here
 }
 
 // ValidateForInsert checks for missing values in the incoming BarkLog's fields.
@@ -56,8 +56,8 @@ func (b BarkLog) ValidateForInsert() (BarkLog, error) {
 		b.Message = constants.DefaultLogMessage
 	}
 
-	if b.MoreData.IsEmpty() {
-		b.MoreData = jsonObject.EmptyNotNullJsonObject()
+	if b.MoreData == "" {
+		b.MoreData = "{}"
 	}
 
 	return b, nil
@@ -108,7 +108,7 @@ func (bld *BarkLogDao) InsertServerStartedLog() error {
 		ServiceInstanceName: appRuntime.SessionName,
 		Code:                "1LQ2X3",
 		Message:             "Server started",
-		MoreData:            jsonObject.EmptyNotNullJsonObject(),
+		MoreData:            "{}",
 	})
 }
 

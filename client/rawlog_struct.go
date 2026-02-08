@@ -13,3 +13,8 @@ type RawLog struct {
 	Message             string
 	MoreData            any
 }
+
+type MoreDataParseFailed struct {
+	ErrorMessage string `json:"errorMessage"`
+	RawData      string `json:"rawData"`
+}

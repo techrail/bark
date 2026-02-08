@@ -2,17 +2,18 @@ package client
 
 import (
 	"context"
+	`encoding/json`
 	"fmt"
-	"github.com/techrail/bark/resources"
-	"github.com/techrail/bark/services/dbLogWriter"
-	"github.com/techrail/bark/services/ingestion"
-	"github.com/techrail/bark/typs/jsonObject"
-	"github.com/techrail/bark/utils"
 	"io"
 	"log/slog"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/techrail/bark/resources"
+	"github.com/techrail/bark/services/dbLogWriter"
+	"github.com/techrail/bark/services/ingestion"
+	"github.com/techrail/bark/utils"
 
 	"github.com/techrail/bark/appRuntime"
 	"github.com/techrail/bark/constants"
@@ -108,7 +109,7 @@ func (c *Config) parseMessage(msg string) models.BarkLog {
 		l.LogLevel = c.getLogLevelFromCharacter(logLvl)
 		l.Code = logCode
 
-		//fmt.Println("-----------------", logLvl, "<>", logCode)
+		// fmt.Println("-----------------", logLvl, "<>", logCode)
 	}
 
 	return l
@@ -192,7 +193,7 @@ func (c *Config) Panic(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Panic
 	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
+	l.MoreData = "{}"
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -206,7 +207,7 @@ func (c *Config) Alert(message string, blocking bool) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Alert
 	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
+	l.MoreData = "{}"
 	c.dispatchLogMessage(l)
 
 	if c.AlertWebhook != nil {
@@ -243,7 +244,7 @@ func (c *Config) Error(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Error
 	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
+	l.MoreData = "{}"
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -256,7 +257,7 @@ func (c *Config) Warn(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Warning
 	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
+	l.MoreData = "{}"
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -269,7 +270,7 @@ func (c *Config) Notice(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Notice
 	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
+	l.MoreData = "{}"
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -282,7 +283,7 @@ func (c *Config) Info(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Info
 	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
+	l.MoreData = "{}"
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -299,7 +300,7 @@ func (c *Config) Debug(message string) {
 	l := c.parseMessage(message)
 	l.LogLevel = constants.Debug
 	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
+	l.MoreData = "{}"
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -317,7 +318,7 @@ func (c *Config) Default(message string) {
 	}
 
 	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
+	l.MoreData = "{}"
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -354,16 +355,24 @@ func (c *Config) Raw(rawLog RawLog, returnError bool) error {
 	}
 
 	// Try to parse the more data field
-	moreData, err := jsonObject.ToJsonObject(rawLog.MoreData)
+	// Convert to string
+	moreDataStr := fmt.Sprintf("%v", rawLog.MoreData)
+	// Try to parse it
+	mData := make(map[string]interface{})
+	err := json.Unmarshal([]byte(moreDataStr), &mData)
 	if err != nil {
-		// Cannot convert the contents of the MoreData field to JSON
-		if returnError {
-			return fmt.Errorf("E#1LSV6K - Could not parse moreData field as valid json")
-		} else {
-			// We will save the error
-			moreData = jsonObject.EmptyNotNullJsonObject()
-			_ = moreData.SetNewTopLevelElement(constants.MoreDataClientParseErrorMessage, err.Error())
-			return nil
+		// The only other thing it can be casted to is an array of any's
+		mDataArr := []any{}
+		err := json.Unmarshal([]byte(moreDataStr), &mDataArr)
+		if err != nil {
+			fmt.Printf("E#2TJLZM: Could not parse moreData field as valid json. Error: %v", err)
+			// Parsing failed. Log as plain string
+			failedMoreData := MoreDataParseFailed{
+				ErrorMessage: fmt.Sprintf("Could not parse moreData field as valid json. Error: %v", err),
+				RawData:      moreDataStr,
+			}
+			moreDataBytes, _ := json.Marshal(failedMoreData)
+			moreDataStr = string(moreDataBytes)
 		}
 	}
 
@@ -374,7 +383,7 @@ func (c *Config) Raw(rawLog RawLog, returnError bool) error {
 		ServiceInstanceName: rawLog.ServiceInstanceName,
 		Code:                rawLog.Code,
 		Message:             rawLog.Message,
-		MoreData:            moreData,
+		MoreData:            moreDataStr,
 	}
 
 	c.dispatchLogMessage(l)
@@ -415,7 +424,7 @@ func (c *Config) Println(message string) {
 	}
 
 	l.LogTime = time.Now().UTC()
-	l.MoreData = jsonObject.EmptyNotNullJsonObject()
+	l.MoreData = "{}"
 	c.dispatchLogMessage(l)
 
 	if c.Slogger != nil {
@@ -573,7 +582,7 @@ func NewClient(url, defaultLogLvl, svcName, svcInstName string, enableSlog bool,
 		fmt.Printf("L#1L3WBF - Blank instance name supplied. Using %v as Service Instance Name", svcInstName)
 	}
 
-	//Wg.Add(1)
+	// Wg.Add(1)
 
 	if enableBulkSend {
 		go keepSendingLogs(url)

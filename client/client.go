@@ -4,16 +4,16 @@ import (
 	"context"
 	`encoding/json`
 	"fmt"
+	"github.com/techrail/bark/config"
+	"github.com/techrail/bark/resources"
+	"github.com/techrail/bark/services/dbLogWriter"
+	"github.com/techrail/bark/services/ingestion"
+	"github.com/techrail/bark/utils"
 	"io"
 	"log/slog"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/techrail/bark/resources"
-	"github.com/techrail/bark/services/dbLogWriter"
-	"github.com/techrail/bark/services/ingestion"
-	"github.com/techrail/bark/utils"
 
 	"github.com/techrail/bark/appRuntime"
 	"github.com/techrail/bark/constants"
@@ -607,12 +607,28 @@ func NewClient(url, defaultLogLvl, svcName, svcInstName string, enableSlog bool,
 	}
 }
 
-// NewClientWithServer returns a client config which performs the job of the server as well
+// NewClientWithServer returns a client config which performs the job of the server as well.
+// It is a wrapper around NewDirectToDbClientCustomSchemaTable with schema name set to a blank string
+func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
+	return NewDirectToDbClient(dbUrl, defaultLogLvl, svcName, svcInstName, enableSlog)
+}
+
+func NewDirectToDbClient(dbUrl, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
+	return NewDirectToDbClientCustomSchemaTable(dbUrl, "", "", defaultLogLvl, svcName, svcInstName, enableSlog)
+}
+
+// NewDirectToDbClientCustomSchemaTable returns a client config which performs the job of the server as well
 // It differs from NewClient in two main ways: it does not have the option to do bulk inserts (they are not needed)
 // and it accepts the database URL instead of server URL.
 //
-// The url parameter is the database URL where the logs will be stored.
+// The dbUrl parameter is the database URL where the logs will be stored.
 // It must be a valid postgresql protocol string.
+//
+// The schemaName is the name of the schema (optional) where the postgresql table resides.
+// If the table is accessible without a schema name using the dbUrl connection, this can be left blank.
+//
+// The tableName is the name of the table where the logs are to be stored.
+// This is supposed to be set if your table is named anything other than `app_log`.
 //
 // The defaultLogLvl parameter is the log level for logging. It must be one of the constants
 // defined in the constants package, such as INFO, WARN, ERROR, etc. If an invalid value
@@ -629,7 +645,7 @@ func NewClient(url, defaultLogLvl, svcName, svcInstName string, enableSlog bool,
 // The enableSlog parameter is a boolean flag that indicates whether to enable slog logging
 // to standard output. If true, the function will create and assign a new slog.Logger object
 // to the Config object. If false, the Config object will have a nil Slogger field.
-func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
+func NewDirectToDbClientCustomSchemaTable(dbUrl, schemaName, tableName, defaultLogLvl, svcName, svcInstName string, enableSlog bool) *Config {
 	if !isValid(defaultLogLvl) {
 		fmt.Printf("L#1M1XXN - %v is not an acceptable log level. %v will be used as the default log level", defaultLogLvl, constants.DefaultLogLevel)
 		defaultLogLvl = constants.DefaultLogLevel
@@ -644,6 +660,9 @@ func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enab
 		svcInstName = appRuntime.SessionName
 		fmt.Printf("L#1M1XZH - Blank instance name supplied. Using %v as Service Instance Name", svcInstName)
 	}
+
+	config.SetDbSchemaName(schemaName)
+	config.SetDbTableName(tableName)
 
 	var slogger *slog.Logger
 
@@ -667,7 +686,7 @@ func NewClientWithServer(dbUrl, defaultLogLvl, svcName, svcInstName string, enab
 	bld := models.NewBarkLogDao()
 	err = bld.InsertServerStartedLog()
 	if err != nil {
-		panic("P#1LQ2YQ - Bark server start failed: " + err.Error())
+		panic("P#20JFKK - Bark server start failed: " + err.Error())
 	}
 
 	// Start the server side
